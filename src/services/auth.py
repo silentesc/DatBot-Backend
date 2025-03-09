@@ -1,6 +1,7 @@
 import requests
 from fastapi import HTTPException
 
+from src.utils import session_manager
 from src import env
 from src.data.models import Guild, User
 
@@ -56,4 +57,6 @@ class AuthService:
             for guild in guilds_data if guild["permissions"] == 2147483647
         ]
 
-        return { "user": user, "guilds": user_guilds }
+        session_id: str = session_manager.generate_session(user=user, guilds=user_guilds)
+
+        return { "user": user, "guilds": user_guilds, "session_id": session_id }
