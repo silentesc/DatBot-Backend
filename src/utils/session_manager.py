@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from loguru import logger
 
 from src.data.models import Guild, User
+from src.data import models
 
 
 class Session:
@@ -13,10 +14,10 @@ class Session:
         self.expire_timestamp = datetime.now() + timedelta(days=1)
 
 
-SESSIONS: dict[str, Session] = []
+SESSIONS: dict[str, Session] = {}
 
 
-def get_session(session_id: str) -> Session:
+def get_session(session_id: str) -> models.Session:
     session = SESSIONS.get(session_id)
     if not session or datetime.now() > session.expire_timestamp:
         return None
@@ -29,7 +30,7 @@ def generate_session(user: User, guilds: list[Guild]) -> str:
     return session.session_id
 
 
-def clean_expired_timestamps():
+def clean_expired_timestamps() -> None:
     count = 0
     for session in SESSIONS.values():
         if datetime.now() > session.expire_timestamp:
