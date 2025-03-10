@@ -19,5 +19,5 @@ async def discord_callback(code: str) -> dict:
 
 
 @router.get("/validate")
-async def validate_session_id(session_id: str) -> Session:
-    return await auth_service.validate_session_id(session_id=session_id)
+async def validate_session(session_id: str) -> Session:
+    return await auth_service.validate_session(session_id=session_id)

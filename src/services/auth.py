@@ -62,7 +62,7 @@ class AuthService:
         return { "user": user, "guilds": user_guilds, "session_id": session_id }
 
 
-    async def validate_session_id(self, session_id: str) -> Session:
+    async def validate_session(self, session_id: str) -> Session:
         session: Session = session_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
