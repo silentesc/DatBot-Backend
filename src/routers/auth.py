@@ -18,6 +18,6 @@ async def discord_callback(code: str) -> dict:
     return await auth_service.discord_callback(code)
 
 
-@router.get("/validate")
+@router.get("/validate_session")
 async def validate_session(session_id: str) -> Session:
     return await auth_service.validate_session(session_id=session_id)
