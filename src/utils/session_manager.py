@@ -11,7 +11,7 @@ class Session:
         self.session_id = str(uuid.uuid4())
         self.user = user
         self.guilds = guilds
-        self.expire_timestamp = datetime.now() + timedelta(days=1)
+        self.expire_timestamp = datetime.now() + timedelta(days=7)
 
 
 SESSIONS: dict[str, Session] = {}
