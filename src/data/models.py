@@ -1,12 +1,11 @@
-import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from pydantic import BaseModel
 
 
 class Guild(BaseModel):
     id: str
     name: str
-    icon: str
+    icon: str | None
 
 
 class User(BaseModel):

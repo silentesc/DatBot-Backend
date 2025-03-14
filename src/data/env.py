@@ -17,3 +17,7 @@ class Env:
 
     def get_redirect_uri(self):
         return os.getenv("REDIRECT_URI")
+
+
+    def get_api_key(self):
+        return os.getenv("API_KEY")
