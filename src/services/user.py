@@ -9,7 +9,7 @@ auth_service = AuthService()
 
 
 class UserService:
-    async def get_user_guilds(self, session_id: str) -> list[Guild]:
+    async def get_user_bot_guilds(self, session_id: str) -> list[Guild]:
         session: Session = auth_service.validate_session(session_id=session_id)
         
         user_guild_ids = [user_guild.id for user_guild in session.guilds]
