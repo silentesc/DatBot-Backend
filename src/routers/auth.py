@@ -8,6 +8,11 @@ router = APIRouter()
 auth_service = AuthService()
 
 
+@router.get("/invite")
+async def get_invite_url() -> str:
+    return await auth_service.get_invite_url()
+
+
 @router.get("/login")
 async def get_login_url() -> str:
     return await auth_service.get_login_url()

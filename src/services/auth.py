@@ -15,6 +15,13 @@ class AuthService:
         return discord_auth_url
 
 
+    async def get_invite_url(self) -> str:
+        invite_url = (
+            f"https://discord.com/oauth2/authorize?client_id={env.get_client_id()}&permissions=8&integration_type=0&scope=bot"
+        )
+        return invite_url
+
+
     async def discord_callback(self, code: str) -> Session:
         if not code:
             raise HTTPException(status_code=400, detail="No code.")
