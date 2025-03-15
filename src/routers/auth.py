@@ -14,7 +14,7 @@ async def get_login_url() -> str:
 
 
 @router.get("/discord/callback")
-async def discord_callback(code: str) -> dict:
+async def discord_callback(code: str) -> Session:
     return await auth_service.discord_callback(code)
 
 

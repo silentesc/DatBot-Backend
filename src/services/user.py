@@ -1,16 +1,16 @@
 import requests
-from fastapi import HTTPException
 
-from src.utils import session_manager
+from src.services.auth import AuthService
 from src.data.models import Session, Guild
 from src import env
 
 
+auth_service = AuthService()
+
+
 class UserService:
     async def get_user_guilds(self, session_id: str) -> list[Guild]:
-        session: Session = session_manager.get_session(session_id=session_id)
-        if not session:
-            raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
+        session: Session = auth_service.validate_session(session_id=session_id)
         
         user_guild_ids = [user_guild.id for user_guild in session.guilds]
         
