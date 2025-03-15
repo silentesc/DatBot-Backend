@@ -9,13 +9,28 @@ auth_service = AuthService()
 
 
 class UserService:
-    async def get_user_bot_guilds(self, session_id: str) -> list[Guild]:
-        session: Session = auth_service.validate_session(session_id=session_id)
-        
-        user_guild_ids = [user_guild.id for user_guild in session.guilds]
-        
+    async def get_user_guilds(self, session_id: str) -> list[dict]:
+        session: Session = await auth_service.validate_session(session_id=session_id)
+
         response = requests.get("http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()})
         response.raise_for_status()
 
-        guilds: list[dict] = [Guild(id=guild["id"], name=guild["name"], icon=guild["icon"]) for guild in response.json() if guild["id"] in user_guild_ids]
-        return guilds
+        user_guilds = []
+        for user_guild in session.guilds:
+            user_guild: Guild
+            found_bot_guild = False
+            for bot_guild in response.json():
+                if user_guild.id == bot_guild["id"]:
+                    user_guilds.append({
+                        "guild": user_guild,
+                        "bot_joined": True,
+                    })
+                    found_bot_guild = True
+                    break
+            if not found_bot_guild:
+                user_guilds.append({
+                    "guild": user_guild,
+                    "bot_joined": False,
+                })
+
+        return user_guilds

@@ -33,11 +33,19 @@ def refresh_data(access_token: str) -> Session:
             for guild in guilds_data if guild["permissions"] == 2147483647
         ]
 
+        # If a session already exists and is not expired, refresh session
         for entry in SESSIONS:
             if access_token == entry["access_token"]:
-                logger.info(f"Removing old session from list with access_token: {access_token}")
-                SESSIONS.remove(entry)
-                break
+                session: Session = entry["session"]
+                if datetime.now() < session.expire_timestamp:
+                    session.user = user
+                    session.guilds = user_guilds
+                    entry["session"] = session
+                    entry["token_expire"] = datetime.now() + timedelta(minutes=10)
+                    logger.info("Old session has been refreshed.")
+                    return session
+        
+        # If no session exists for that access token, create new one
 
         session = Session(
             session_id=str(uuid.uuid4()),
@@ -49,7 +57,7 @@ def refresh_data(access_token: str) -> Session:
         SESSIONS.append({
             "session": session,
             "access_token": access_token,
-            "token_expire": datetime.now() + timedelta(minutes=10)
+            "token_expire": datetime.now() + timedelta(minutes=1)
         })
 
         logger.info(f"New session has been created. Currently there are {len(SESSIONS)} sessions.")
