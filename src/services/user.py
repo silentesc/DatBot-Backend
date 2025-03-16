@@ -1,7 +1,9 @@
+from fastapi import HTTPException
 import requests
 
 from src.services.auth import AuthService
 from src.data.models import Session, Guild
+from src.utils import response_manager
 from src import env
 
 
@@ -13,7 +15,7 @@ class UserService:
         session: Session = await auth_service.validate_session(session_id=session_id)
 
         response = requests.get("http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()})
-        response.raise_for_status()
+        response_manager.check_for_error(response=response)
 
         user_guilds = []
         for user_guild in session.guilds:
@@ -34,3 +36,15 @@ class UserService:
                 })
 
         return user_guilds
+
+
+    async def get_guild_channels(self, session_id: str, guild_id: str) -> list[dict]:
+        session: Session = await auth_service.validate_session(session_id=session_id)
+
+        if not guild_id in [guild.id for guild in session.guilds]:
+            raise HTTPException(status_code=404, detail="Guild not found in user session")
+
+        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
+        response_manager.check_for_error(response=response)
+
+        return response.json()
