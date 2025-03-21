@@ -35,7 +35,7 @@ if __name__ == "__main__":
         db.execute(query="""
             CREATE TABLE reaction_role_emoji_roles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                emoji IDK,
+                emoji TEXT,
                 dc_role_id VARCHAR(255)
             )
             """
