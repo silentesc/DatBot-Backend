@@ -48,3 +48,15 @@ class UserService:
         response_manager.check_for_error(response=response)
 
         return response.json()
+
+
+    async def get_guild_roles(self, session_id: str, guild_id: str) -> list[dict]:
+        session: Session = await auth_service.validate_session(session_id=session_id)
+
+        if not guild_id in [guild.id for guild in session.guilds]:
+            raise HTTPException(status_code=404, detail="Guild not found in user session")
+
+        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()})
+        response_manager.check_for_error(response=response)
+
+        return response.json()
