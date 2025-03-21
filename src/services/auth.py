@@ -1,7 +1,7 @@
 import requests
 from fastapi import HTTPException
 
-from src.utils import dc_auth_manager
+from src.utils import dc_auth_manager, response_manager
 from src import env
 from src.data.models import  Session
 
@@ -39,7 +39,7 @@ class AuthService:
         }
 
         token_response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-        token_response.raise_for_status()
+        response_manager.check_for_error(response=token_response)
         token_data: dict = token_response.json()
         access_token = token_data["access_token"]
 
