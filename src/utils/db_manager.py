@@ -14,38 +14,34 @@ class DbManager:
 
 
     def execute(self, query: str, params: tuple = ()):
-        with self.conn:
-            self.conn.execute(query, params)
+        cursor = self.conn.cursor()
+        cursor.execute(query, params)
+        cursor.close()
 
 
     def execute_fetchall(self, query: str, params: tuple = ()):
-        with self.conn:
-            cursor = self.conn.execute(query, params)
-        return cursor.fetchall()
+        cursor = self.conn.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchall()
+        cursor.close()
+        return result
 
 
     def execute_fetchone(self, query: str, params: tuple = ()):
-        with self.conn:
-            cursor = self.conn.execute(query, params)
-        return cursor.fetchone()
+        cursor = self.conn.cursor()
+        cursor.execute(query, params)
+        result = cursor.fetchone()
+        cursor.close()
+        return result
 
 
 if __name__ == "__main__":
     with DbManager() as db:
         db.execute(query="""
-            CREATE TABLE reaction_role_emoji_roles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                emoji TEXT,
-                dc_role_id VARCHAR(255)
-            )
-            """
-        )
-        
-        db.execute(query="""
             CREATE TABLE reaction_role_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                db_guild_id VARCHAR(255),
-                db_role_id VARCHAR(255),
+                dc_guild_id VARCHAR(255),
+                dc_channel_id VARCHAR(255),
                 message TEXT
             )
             """
@@ -55,7 +51,8 @@ if __name__ == "__main__":
             CREATE TABLE reaction_roles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reaction_role_messages_id INTEGER,
-                reaction_role_emoji_roles_id INTEGER
+                emoji TEXT,
+                dc_role_id VARCHAR(255)
             )
             """
         )
