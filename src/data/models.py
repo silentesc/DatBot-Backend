@@ -19,3 +19,8 @@ class Session(BaseModel):
     user: User
     guilds: list[Guild]
     expire_timestamp: datetime
+
+
+class EmojiRole(BaseModel):
+    emoji: str
+    role_id: str
