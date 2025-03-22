@@ -18,9 +18,6 @@ class ReactionRoleService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        if len(emoji_roles) > 20:
-            raise HTTPException(status_code=400, detail="Maximum of 20 emojis on a message is exceeded")
-        
         for emoji_role in emoji_roles:
             if not emoji.is_emoji(emoji_role.emoji):
                 raise HTTPException(status_code=400, detail="An emoji is not a real emoji")
