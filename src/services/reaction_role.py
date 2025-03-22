@@ -4,14 +4,61 @@ import emoji
 
 from src.data.models import Session, EmojiRole
 from src.services.auth import AuthService
+from src.services.user import UserService
 from src.utils import response_manager, db_manager
 from src import env
 
 
 auth_service = AuthService()
+user_service = UserService()
 
 
 class ReactionRoleService:
+    async def get_reaction_roles(self, session_id: str, guild_id: str):
+        _: Session = await auth_service.validate_session(session_id=session_id)
+        
+        guild_channels: list[dict] = await user_service.get_guild_channels(session_id=session_id, guild_id=guild_id)
+        guild_roles: list[dict] = await user_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
+
+        with db_manager.DbManager() as db:
+            reaction_role_messages_rows: list = db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            reaction_role_messages_ids: list = [reaction_role_message["id"] for reaction_role_message in reaction_role_messages_rows]
+
+            placeholders = ','.join('?' for _ in reaction_role_messages_ids)
+            query = f"SELECT * FROM reaction_roles WHERE reaction_role_messages_id IN ({placeholders})"
+            reaction_roles_rows: list = db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
+
+        reaction_role_messages: dict[str, dict[str, str]] = {}
+
+        for reaction_role_messages_row in reaction_role_messages_rows:
+            for channel in guild_channels:
+                if channel["id"] == reaction_role_messages_row["dc_channel_id"]:
+                    reaction_role_messages[reaction_role_messages_row["id"]] = {
+                        "guild_id": reaction_role_messages_row["dc_guild_id"],
+                        "channel_id": reaction_role_messages_row["dc_channel_id"],
+                        "channel_name": channel["name"],
+                        "channel_type": channel["type"],
+                        "channel_parent_id": channel["parentId"],
+                        "message": reaction_role_messages_row["message"],
+                    }
+        
+        for reaction_roles_row in reaction_roles_rows:
+            if not reaction_role_messages[reaction_roles_row["reaction_role_messages_id"]].get("emoji_roles"):
+                reaction_role_messages[reaction_roles_row["reaction_role_messages_id"]]["emoji_roles"] = []
+            
+            for role in guild_roles:
+                if role["id"] == reaction_roles_row["dc_role_id"]:
+                    reaction_role_messages[reaction_roles_row["reaction_role_messages_id"]]["emoji_roles"].append({
+                        "emoji": reaction_roles_row["emoji"],
+                        "role_id": reaction_roles_row["dc_role_id"],
+                        "role_name": role["name"],
+                        "role_color": role["color"],
+                        "role_position": role["position"],
+                    })
+        
+        return [v for _, v in reaction_role_messages.items()]
+
+
     async def create_reaction_role(self, session_id: str, guild_id: str, channel_id: str, message: str, emoji_roles: list[EmojiRole]):
         session: Session = await auth_service.validate_session(session_id=session_id)
 
@@ -26,7 +73,7 @@ class ReactionRoleService:
         response_manager.check_for_error(response=response)
 
         with db_manager.DbManager() as db:
-            reaction_role_message_id = db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?) RETURNING id", params=(guild_id, channel_id, message))[0]
+            reaction_role_message_id = db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?) RETURNING id", params=(guild_id, channel_id, message))["id"]
 
             reaction_role_emoji_roles_values = []
             for emoji_role in emoji_roles:
