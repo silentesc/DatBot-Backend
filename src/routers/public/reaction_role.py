@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src.services.reaction_role import ReactionRoleService
+from src.services.public.reaction_role import ReactionRoleService
 from src.data.models import EmojiRole
 
 

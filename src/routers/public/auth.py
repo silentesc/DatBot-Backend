@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src.services.auth import AuthService
+from src.services.public.auth import AuthService
 from src.data.models import Session
 
 

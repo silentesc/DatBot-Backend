@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 import requests
 
-from src.services.auth import AuthService
+from src.services.public.auth import AuthService
 from src.data.models import Session, Guild
 from src.utils import response_manager
 from src import env

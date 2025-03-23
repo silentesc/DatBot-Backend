@@ -3,8 +3,8 @@ import requests
 import emoji
 
 from src.data.models import Session, EmojiRole
-from src.services.auth import AuthService
-from src.services.user import UserService
+from src.services.public.auth import AuthService
+from src.services.public.user import UserService
 from src.utils import response_manager, db_manager
 from src import env
 
