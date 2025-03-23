@@ -28,12 +28,13 @@ class ReactionRoleService:
             query = f"SELECT * FROM reaction_roles WHERE reaction_role_messages_id IN ({placeholders})"
             reaction_roles_rows: list = db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
 
-        reaction_role_messages: dict[str, dict[str, str]] = {}
+        reaction_role_messages: dict[str, dict[str, any]] = {}
 
         for reaction_role_messages_row in reaction_role_messages_rows:
             for channel in guild_channels:
                 if channel["id"] == reaction_role_messages_row["dc_channel_id"]:
                     reaction_role_messages[reaction_role_messages_row["id"]] = {
+                        "message_id": reaction_role_messages_row["dc_message_id"],
                         "guild_id": reaction_role_messages_row["dc_guild_id"],
                         "channel_id": reaction_role_messages_row["dc_channel_id"],
                         "channel_name": channel["name"],
@@ -59,7 +60,7 @@ class ReactionRoleService:
         return [v for _, v in reaction_role_messages.items()]
 
 
-    async def create_reaction_role(self, session_id: str, guild_id: str, channel_id: str, message: str, emoji_roles: list[EmojiRole]):
+    async def create_reaction_role(self, session_id: str, guild_id: str, channel_id: str, message: str, emoji_roles: list[EmojiRole]) -> str:
         session: Session = await auth_service.validate_session(session_id=session_id)
 
         if not guild_id in [guild.id for guild in session.guilds]:
@@ -69,11 +70,13 @@ class ReactionRoleService:
             if not emoji.is_emoji(emoji_role.emoji):
                 raise HTTPException(status_code=400, detail="An emoji is not a real emoji")
         
-        response = requests.post(f"http://localhost:3001/reaction_role/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "emoji_roles": emoji_roles})
+        response = requests.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "emoji_roles": emoji_roles})
         response_manager.check_for_error(response=response)
 
+        dc_message_id = response.json()["message_id"]
+
         with db_manager.DbManager() as db:
-            reaction_role_message_id = db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?) RETURNING id", params=(guild_id, channel_id, message))["id"]
+            reaction_role_message_id = db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, dc_message_id, message) VALUES (?, ?, ?, ?) RETURNING id", params=(guild_id, channel_id, dc_message_id, message))["id"]
 
             reaction_role_emoji_roles_values = []
             for emoji_role in emoji_roles:
@@ -81,3 +84,5 @@ class ReactionRoleService:
                 reaction_role_emoji_roles_values.append(emoji_role.emoji)
                 reaction_role_emoji_roles_values.append(emoji_role.role_id)
             db.execute(query=f"INSERT INTO reaction_roles (reaction_role_messages_id, emoji, dc_role_id) VALUES {",".join(["(?,?,?)" for _ in emoji_roles])}", params=tuple(reaction_role_emoji_roles_values))
+        
+        return dc_message_id
