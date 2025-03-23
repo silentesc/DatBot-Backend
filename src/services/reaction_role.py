@@ -97,8 +97,9 @@ class ReactionRoleService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        
-        
+        response = requests.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()})
+        response_manager.check_for_error(response=response)
+
         with db_manager.DbManager() as db:
             reaction_role_message_row = db.execute_fetchone(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ? AND dc_channel_id = ? AND dc_message_id = ?", params=(guild_id, channel_id, message_id))
             if not reaction_role_message_row:
