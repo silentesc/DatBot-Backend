@@ -15,7 +15,10 @@ user_service = UserService()
 
 class ReactionRoleService:
     async def get_reaction_roles(self, session_id: str, guild_id: str):
-        _: Session = await auth_service.validate_session(session_id=session_id)
+        session: Session = await auth_service.validate_session(session_id=session_id)
+
+        if not guild_id in [guild.id for guild in session.guilds]:
+            raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         guild_channels: list[dict] = await user_service.get_guild_channels(session_id=session_id, guild_id=guild_id)
         guild_roles: list[dict] = await user_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
