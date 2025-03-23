@@ -89,3 +89,21 @@ class ReactionRoleService:
             db.execute(query=f"INSERT INTO reaction_roles (reaction_role_messages_id, emoji, dc_role_id) VALUES {",".join(["(?,?,?)" for _ in emoji_roles])}", params=tuple(reaction_role_emoji_roles_values))
         
         return dc_message_id
+
+
+    async def delete_reaction_role(self, session_id: str, guild_id: str, channel_id: str, message_id: str):
+        session: Session = await auth_service.validate_session(session_id=session_id)
+
+        if not guild_id in [guild.id for guild in session.guilds]:
+            raise HTTPException(status_code=404, detail="Guild not found in user session")
+        
+        
+        
+        with db_manager.DbManager() as db:
+            reaction_role_message_row = db.execute_fetchone(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ? AND dc_channel_id = ? AND dc_message_id = ?", params=(guild_id, channel_id, message_id))
+            if not reaction_role_message_row:
+                raise HTTPException(status_code=404, detail="Couldn't find reaction role")
+            reaction_role_message_id = reaction_role_message_row["id"]
+
+            db.execute("DELETE FROM reaction_roles WHERE reaction_role_messages_id = ?", params=(reaction_role_message_id,))
+            db.execute("DELETE FROM reaction_role_messages WHERE id = ?", params=(reaction_role_message_id,))
