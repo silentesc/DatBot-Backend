@@ -22,6 +22,7 @@ class ReactionRoleService:
 
         for reaction_role_messages_row in reaction_role_messages_rows:
             reaction_role_messages[reaction_role_messages_row["id"]] = {
+                "type": reaction_role_messages_row["type"],
                 "message_id": reaction_role_messages_row["dc_message_id"],
             }
         

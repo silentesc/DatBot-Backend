@@ -43,6 +43,7 @@ if __name__ == "__main__":
                 dc_guild_id VARCHAR(255),
                 dc_channel_id VARCHAR(255),
                 dc_message_id VARCHAR(255),
+                type VARCHAR(255),
                 message TEXT
             )
             """
