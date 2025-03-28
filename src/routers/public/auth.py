@@ -26,5 +26,4 @@ async def discord_callback(code: str) -> Session:
 
 @router.get("/validate_session")
 async def validate_session(session_id: str) -> Session:
-    logger.info(f"Validate endpoint called with session id: {session_id}")
     return await auth_service.validate_session(session_id=session_id)

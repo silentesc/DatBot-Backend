@@ -71,6 +71,8 @@ def get_session(session_id: str) -> Session:
         access_token: str = entry["access_token"]
         token_expire: datetime = entry["token_expire"]
 
+        print(f"Comparing existing session id ({session.session_id}) with session id {session_id}. Result: {session_id == session.session_id}")
+
         if session_id == session.session_id:
             if datetime.now() > session.expire_timestamp:
                 logger.info("Session expired")

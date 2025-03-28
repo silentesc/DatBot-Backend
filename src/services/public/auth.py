@@ -48,7 +48,6 @@ class AuthService:
 
 
     async def validate_session(self, session_id: str) -> Session:
-        logger.info(f"Trying to valid session id: {session_id}")
         session: Session = dc_auth_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
