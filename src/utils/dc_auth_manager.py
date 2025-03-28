@@ -66,6 +66,7 @@ def refresh_data(access_token: str) -> Session:
 
 
 def get_session(session_id: str) -> Session:
+    print(SESSIONS)
     for entry in SESSIONS:
         session: Session = entry["session"]
         access_token: str = entry["access_token"]
