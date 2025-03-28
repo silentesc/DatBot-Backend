@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from loguru import logger
 
 from src.services.public.auth import AuthService
 from src.data.models import Session
@@ -25,4 +26,5 @@ async def discord_callback(code: str) -> Session:
 
 @router.get("/validate_session")
 async def validate_session(session_id: str) -> Session:
+    logger.info(f"Validate endpoint called with session id: {session_id}")
     return await auth_service.validate_session(session_id=session_id)

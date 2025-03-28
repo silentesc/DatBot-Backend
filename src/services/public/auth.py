@@ -1,5 +1,6 @@
 import requests
 from fastapi import HTTPException
+from loguru import logger
 
 from src.utils import dc_auth_manager, response_manager
 from src import env
@@ -47,6 +48,7 @@ class AuthService:
 
 
     async def validate_session(self, session_id: str) -> Session:
+        logger.info(f"Trying to valid session id: {session_id}")
         session: Session = dc_auth_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
