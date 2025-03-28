@@ -66,13 +66,10 @@ def refresh_data(access_token: str) -> Session:
 
 
 def get_session(session_id: str) -> Session:
-    print(SESSIONS)
     for entry in SESSIONS:
         session: Session = entry["session"]
         access_token: str = entry["access_token"]
         token_expire: datetime = entry["token_expire"]
-
-        print(f"Comparing existing session id ({session.session_id}) with session id {session_id}. Result: {session_id == session.session_id}")
 
         if session_id == session.session_id:
             if datetime.now() > session.expire_timestamp:

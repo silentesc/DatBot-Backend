@@ -3,10 +3,10 @@ from multiprocessing import Process
 
 
 def run_public_app():
-    uvicorn.run("src.public_app:app", host="0.0.0.0", port=8000, reload=False, workers=4)
+    uvicorn.run("src.public_app:app", host="0.0.0.0", port=8000, reload=False)
 
 def run_internal_app():
-    uvicorn.run("src.internal_app:app", host="127.0.0.1", port=9000, reload=False, workers=4)
+    uvicorn.run("src.internal_app:app", host="127.0.0.1", port=9000, reload=False)
 
 
 if __name__ == "__main__":
