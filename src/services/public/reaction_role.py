@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 import requests
 import emoji
+import bleach
 
 from src.data.models import Session, EmojiRole
 from src.services.public.auth import AuthService
@@ -66,6 +67,8 @@ class ReactionRoleService:
 
     async def create_reaction_role(self, session_id: str, guild_id: str, channel_id: str, reaction_role_type: str, message: str, emoji_roles: list[EmojiRole]) -> str:
         session: Session = await auth_service.validate_session(session_id=session_id)
+
+        message = bleach.clean(message)
 
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
