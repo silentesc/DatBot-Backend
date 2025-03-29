@@ -19,6 +19,11 @@ async def get_login_url() -> str:
     return await auth_service.get_login_url()
 
 
+@router.post("/logout")
+async def logout(session_id: str) -> None:
+    return await auth_service.logout(session_id=session_id)
+
+
 @router.get("/discord/callback")
 async def discord_callback(code: str) -> Session:
     return await auth_service.discord_callback(code)

@@ -85,6 +85,12 @@ def get_session(session_id: str) -> Session:
     return None
 
 
+def delete_session(session_id: str) -> None:
+    global SESSIONS
+    SESSIONS = [entry for entry in SESSIONS if entry["session"].session_id != session_id]
+    logger.info(f"Session with ID {session_id} has been deleted.")
+
+
 def clean_expired_sessions():
     count = 0
     for entry in SESSIONS:

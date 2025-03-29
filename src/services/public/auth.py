@@ -52,3 +52,11 @@ class AuthService:
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
         return session
+
+
+    async def logout(self, session_id: str) -> None:
+        session: Session = dc_auth_manager.get_session(session_id=session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session does not exist or is already expired.")
+        
+        dc_auth_manager.delete_session(session_id=session_id)
