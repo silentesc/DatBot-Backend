@@ -21,6 +21,11 @@ class Session(BaseModel):
     expire_timestamp: datetime
 
 
+class UserGuild(BaseModel):
+    bot_joined: bool
+    guild: Guild
+
+
 class EmojiRole(BaseModel):
     emoji: str
     role_id: str

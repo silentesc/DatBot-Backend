@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from src.services.public.user import UserService
+from src.data.models import UserGuild
 
 
 router = APIRouter()
@@ -8,7 +9,7 @@ user_service = UserService()
 
 
 @router.get("/user_guilds")
-async def get_user_guilds(session_id: str) -> list[dict]:
+async def get_user_guilds(session_id: str) -> list[UserGuild]:
     return await user_service.get_user_guilds(session_id)
 
 @router.get("/guild_channels")
