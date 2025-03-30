@@ -29,3 +29,17 @@ class UserGuild(BaseModel):
 class EmojiRole(BaseModel):
     emoji: str
     role_id: str
+
+
+class Channel(BaseModel):
+    id: str
+    name: str
+    type: int
+    parent_id: str | None
+
+
+class Role(BaseModel):
+    id: str
+    name: str
+    color: int
+    position: int
