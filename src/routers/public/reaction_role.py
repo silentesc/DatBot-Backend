@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.services.public.reaction_role import ReactionRoleService
-from src.data.models import EmojiRole
+from src.data.models import EmojiRole, ReactionRole
 
 
 router = APIRouter()
@@ -9,7 +9,7 @@ reaction_roles_service = ReactionRoleService()
 
 
 @router.get("/reaction_roles")
-async def get_reaction_roles(session_id: str, guild_id: str):
+async def get_reaction_roles(session_id: str, guild_id: str) -> list[ReactionRole]:
     return await reaction_roles_service.get_reaction_roles(session_id=session_id, guild_id=guild_id)
 
 
