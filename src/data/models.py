@@ -46,6 +46,7 @@ class ReactionRole(BaseModel):
     channel_name: str
     channel_type: int
     channel_parent_id: str
+    type: str
     message: str
     emoji_roles: list[EmojiRoleExtended]
 
