@@ -30,7 +30,7 @@ def refresh_data(access_token: str) -> Session:
                 name=guild["name"],
                 icon=guild["icon"],
             )
-            for guild in guilds_data if guild["permissions"] == 2147483647
+            for guild in guilds_data if (int(guild["permissions"]) & 0x20) or (int(guild["permissions"]) & 0x8)
         ]
 
         # If a session already exists and is not expired, refresh session
