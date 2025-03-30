@@ -55,6 +55,6 @@ class UserService:
         response = requests.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()})
         response_manager.check_for_error(response=response)
 
-        roles = [Role(id=role["id"], name=role["name"], color=role["color"], position=role["position"]) for role in response.json()]
+        roles = [Role(id=role["id"], name=role["name"], color=role["color"], position=role["position"], managed=role["managed"]) for role in response.json()]
 
         return roles

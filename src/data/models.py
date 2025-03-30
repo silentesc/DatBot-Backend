@@ -43,3 +43,4 @@ class Role(BaseModel):
     name: str
     color: int
     position: int
+    managed: bool
