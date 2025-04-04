@@ -60,6 +60,17 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
+            CREATE TABLE logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id VARCHAR(255) NOT NULL,
+                user_id VARCHAR(255) NOT NULL,
+                action TEXT NOT NULL,
+                timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+
+        db.execute(query="""
             CREATE TABLE users (
                 id VARCHAR(255) NOT NULL UNIQUE,
                 username VARCHAR(255) NOT NULL,

@@ -71,7 +71,9 @@ class ReactionRoleService:
 
         message = bleach.clean(message)
 
-        if not guild_id in [guild.id for guild in session.guilds]:
+        guild = next((guild for guild in session.guilds if guild.id == guild_id), None)
+
+        if not guild:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         for emoji_role in emoji_roles:
@@ -93,13 +95,20 @@ class ReactionRoleService:
                 reaction_role_emoji_roles_values.append(emoji_role.role_id)
             db.execute(query=f"INSERT INTO reaction_roles (reaction_role_messages_id, emoji, dc_role_id) VALUES {",".join(["(?,?,?)" for _ in emoji_roles])}", params=tuple(reaction_role_emoji_roles_values))
         
+        with db_manager.DbManager() as db:
+            db.execute(query="INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", params=(guild_id, guild.name, guild.icon))
+            db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?)", params=(session.user.id, session.user.username, session.user.avatar))
+            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Added reaction role"))
+        
         return dc_message_id
 
 
     async def delete_reaction_role(self, session_id: str, guild_id: str, channel_id: str, message_id: str):
         session: Session = await auth_service.validate_session(session_id=session_id)
+        
+        guild = next((guild for guild in session.guilds if guild.id == guild_id), None)
 
-        if not guild_id in [guild.id for guild in session.guilds]:
+        if not guild:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         response = requests.delete(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()})
@@ -113,3 +122,8 @@ class ReactionRoleService:
 
             db.execute("DELETE FROM reaction_roles WHERE reaction_role_messages_id = ?", params=(reaction_role_message_id,))
             db.execute("DELETE FROM reaction_role_messages WHERE id = ?", params=(reaction_role_message_id,))
+        
+        with db_manager.DbManager() as db:
+            db.execute(query="INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", params=(guild_id, guild.name, guild.icon))
+            db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?)", params=(session.user.id, session.user.username, session.user.avatar))
+            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Deleted reaction role"))
