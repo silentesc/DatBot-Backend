@@ -58,3 +58,40 @@ if __name__ == "__main__":
             )
             """
         )
+
+        db.execute(query="""
+            CREATE TABLE users (
+                id VARCHAR(255) NOT NULL UNIQUE,
+                username VARCHAR(255) NOT NULL,
+                avatar VARCHAR(255)
+            )
+            """
+        )
+
+        db.execute(query="""
+            CREATE TABLE guilds (
+                id VARCHAR(255) NOT NULL UNIQUE,
+                name VARCHAR(255) NOT NULL,
+                icon VARCHAR(255)
+            )
+            """
+        )
+
+        db.execute(query="""
+            CREATE TABLE sessions (
+                id VARCHAR(255) NOT NULL UNIQUE,
+                user_id VARCHAR(255) NOT NULL,
+                session_expire_timestamp TIMESTAMP NOT NULL,
+                access_token VARCHAR(255),
+                access_token_expire_timestamp TIMESTAMP NOT NULL
+            )
+            """
+        )
+
+        db.execute(query="""
+            CREATE TABLE sessions_guilds_map (
+                session_id VARCHAR(255) NOT NULL,
+                guild_id VARCHAR(255) NOT NULL
+            )
+            """
+        )
