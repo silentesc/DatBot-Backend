@@ -64,3 +64,10 @@ class Role(BaseModel):
     color: int
     position: int
     managed: bool
+
+
+class Log(BaseModel):
+    guild: Guild
+    user: User
+    action: str
+    timestamp: datetime
