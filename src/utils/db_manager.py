@@ -38,7 +38,7 @@ class DbManager:
 if __name__ == "__main__":
     with DbManager() as db:
         db.execute(query="""
-            CREATE TABLE reaction_role_messages (
+            CREATE TABLE IF NOT EXISTS reaction_role_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 dc_guild_id VARCHAR(255),
                 dc_channel_id VARCHAR(255),
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE reaction_roles (
+            CREATE TABLE IF NOT EXISTS reaction_roles (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reaction_role_messages_id INTEGER,
                 emoji TEXT,
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE logs (
+            CREATE TABLE IF NOT EXISTS logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 guild_id VARCHAR(255) NOT NULL,
                 user_id VARCHAR(255) NOT NULL,
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE users (
+            CREATE TABLE IF NOT EXISTS users (
                 id VARCHAR(255) NOT NULL UNIQUE,
                 username VARCHAR(255) NOT NULL,
                 avatar VARCHAR(255)
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE guilds (
+            CREATE TABLE IF NOT EXISTS guilds (
                 id VARCHAR(255) NOT NULL UNIQUE,
                 name VARCHAR(255) NOT NULL,
                 icon VARCHAR(255)
@@ -89,7 +89,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE sessions (
+            CREATE TABLE IF NOT EXISTS sessions (
                 id VARCHAR(255) NOT NULL UNIQUE,
                 user_id VARCHAR(255) NOT NULL,
                 session_expire_timestamp TIMESTAMP NOT NULL,
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         )
 
         db.execute(query="""
-            CREATE TABLE sessions_guilds_map (
+            CREATE TABLE IF NOT EXISTS sessions_guilds_map (
                 session_id VARCHAR(255) NOT NULL,
                 guild_id VARCHAR(255) NOT NULL
             )
