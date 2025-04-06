@@ -2,10 +2,18 @@ import uuid
 import requests
 from datetime import datetime, timedelta
 from loguru import logger
+import os
+import tempfile
+from filelock import FileLock, Timeout
 
 from src.data.models import Session, User, Guild
 from src.utils.db_manager import DbManager
 from src.utils import response_manager
+
+
+def get_refresh_lock(session_id: str):
+    lock_path = os.path.join(tempfile.gettempdir(), f"session_lock_{session_id}.lock")
+    return FileLock(lock_path, timeout=60)
 
 
 def refresh_data(access_token: str) -> Session:
@@ -43,7 +51,7 @@ def refresh_data(access_token: str) -> Session:
                 db.execute(query="UPDATE users SET username = ?, avatar = ? WHERE id = ?", params=(user.username, user.avatar, user.id))
                 for user_guild in user_guilds:
                     db.execute(query="UPDATE guilds SET name = ?, icon = ? WHERE id = ?", params=(user_guild.name, user_guild.icon, user_guild.id))
-                db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(minutes=10)), session_id))
+                db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(seconds=5)), session_id))
 
                 logger.info("Old session has been refreshed.")
                 return Session(session_id=session_id, user=user, guilds=user_guilds, expire_timestamp=session_expire_timestamp)
@@ -59,7 +67,7 @@ def refresh_data(access_token: str) -> Session:
         # Create db entires
         with DbManager() as db:
             db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?) RETURNING id", params=(user.id, user.username, user.avatar))
-            db.execute(query="INSERT OR IGNORE INTO sessions (id, user_id, session_expire_timestamp, access_token, access_token_expire_timestamp) VALUES (?, ?, ?, ?, ?)", params=(session.session_id, user.id, (datetime.now() + timedelta(days=7)), access_token, (datetime.now() + timedelta(minutes=10))))
+            db.execute(query="INSERT OR IGNORE INTO sessions (id, user_id, session_expire_timestamp, access_token, access_token_expire_timestamp) VALUES (?, ?, ?, ?, ?)", params=(session.session_id, user.id, (datetime.now() + timedelta(days=7)), access_token, (datetime.now() + timedelta(seconds=5))))
 
             for user_guild in user_guilds:
                 db.execute("INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", (user_guild.id, user_guild.name, user_guild.icon))
@@ -88,14 +96,32 @@ def get_session(session_id: str) -> Session:
         access_token = sessions_row["access_token"]
         access_token_expire_timestamp = str2datetime(sessions_row["access_token_expire_timestamp"])
 
+        # Return None if session expired
         if datetime.now() > session_expire_timestamp:
             logger.info("Session expired")
             delete_session(session_id=session_id)
             return None
         
+        # Try to refresh data if access token expired, using a lock to wait if another process is refreshing
         if datetime.now() > access_token_expire_timestamp:
-            logger.info("Access token expired, refreshing session")
-            return refresh_data(access_token=access_token)
+            refresh_lock = get_refresh_lock(session_id)
+            
+            try:
+                refresh_lock.acquire(timeout=0)
+            except Timeout:
+                logger.info("Refresh in progress, waiting for refreshed session")
+                try:
+                    # block until lock is available
+                    refresh_lock.acquire(blocking=True, timeout=60)
+                except Timeout:
+                    logger.error(f"Timeout acquiring refresh lock for session {session_id}")
+                    return None
+                else:
+                    refresh_lock.release()
+                    return get_session(session_id)
+            else:
+                logger.info("Access token expired, refreshing session")
+                return refresh_data(access_token=access_token)
 
         guild_rows: list[dict] = db.execute_fetchall(query="SELECT * FROM guilds WHERE id IN (SELECT guild_id FROM sessions_guilds_map WHERE session_id = ?)", params=(session_id,))
 
