@@ -51,7 +51,7 @@ def refresh_data(access_token: str) -> Session:
                 db.execute(query="UPDATE users SET username = ?, avatar = ? WHERE id = ?", params=(user.username, user.avatar, user.id))
                 for user_guild in user_guilds:
                     db.execute(query="UPDATE guilds SET name = ?, icon = ? WHERE id = ?", params=(user_guild.name, user_guild.icon, user_guild.id))
-                db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(seconds=5)), session_id))
+                db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(minutes=10)), session_id))
 
                 logger.info("Old session has been refreshed.")
                 return Session(session_id=session_id, user=user, guilds=user_guilds, expire_timestamp=session_expire_timestamp)
@@ -67,7 +67,7 @@ def refresh_data(access_token: str) -> Session:
         # Create db entires
         with DbManager() as db:
             db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?) RETURNING id", params=(user.id, user.username, user.avatar))
-            db.execute(query="INSERT OR IGNORE INTO sessions (id, user_id, session_expire_timestamp, access_token, access_token_expire_timestamp) VALUES (?, ?, ?, ?, ?)", params=(session.session_id, user.id, (datetime.now() + timedelta(days=7)), access_token, (datetime.now() + timedelta(seconds=5))))
+            db.execute(query="INSERT OR IGNORE INTO sessions (id, user_id, session_expire_timestamp, access_token, access_token_expire_timestamp) VALUES (?, ?, ?, ?, ?)", params=(session.session_id, user.id, (datetime.now() + timedelta(days=7)), access_token, (datetime.now() + timedelta(minutes=10))))
 
             for user_guild in user_guilds:
                 db.execute("INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", (user_guild.id, user_guild.name, user_guild.icon))
