@@ -5,15 +5,16 @@ from loguru import logger
 
 from src.data.models import Session, User, Guild
 from src.utils.db_manager import DbManager
+from src.utils import response_manager
 
 
 def refresh_data(access_token: str) -> Session:
         user_response = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"})
-        user_response.raise_for_status()
+        response_manager.check_for_error(response=user_response)
         user_data: dict = user_response.json()
 
         guilds_response = requests.get("https://discord.com/api/users/@me/guilds", headers={"Authorization": f"Bearer {access_token}"})
-        guilds_response.raise_for_status()
+        response_manager.check_for_error(response=guilds_response)
         guilds_data = guilds_response.json()
 
         user = User(
