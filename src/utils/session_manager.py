@@ -32,7 +32,7 @@ def refresh_data(access_token: str) -> Session:
         )
 
         # Get guilds from user data and combine with bot_joined from db to make Guild list
-        user_guilds = []
+        user_guilds: list[Guild] = []
         with DbManager() as db:
             for guild in guilds_data:
                 if not ((int(guild["permissions"]) & 0x20) or (int(guild["permissions"]) & 0x8)):
@@ -58,12 +58,22 @@ def refresh_data(access_token: str) -> Session:
                 session_id = session_row["id"]
                 session_expire_timestamp = str2datetime(session_row["session_expire_timestamp"])
 
-                # Update db
+                # Add new guilds to guilds and sessions_guilds_map
+                sessions_guilds_map_rows: list[dict] = db.execute_fetchall(query=f"SELECT * FROM sessions_guilds_map WHERE session_id = ?", params=(session_id,))
+                sessions_guilds_map_guild_ids: list[str] = [sessions_guilds_map_row["guild_id"] for sessions_guilds_map_row in sessions_guilds_map_rows]
+                for user_guild in user_guilds:
+                    if user_guild.id not in sessions_guilds_map_guild_ids:
+                        db.execute("INSERT OR IGNORE INTO guilds (id, name, icon, bot_joined) VALUES (?, ?, ?, ?)", (user_guild.id, user_guild.name, user_guild.icon, user_guild.bot_joined))
+                        db.execute("INSERT INTO sessions_guilds_map (session_id, guild_id) VALUES (?, ?)", (session_id, user_guild.id))
+                
+                # Delete removed guilds from sessions_guilds_map
+                db.execute(query=f"DELETE FROM sessions_guilds_map WHERE session_id = ? AND guild_id NOT IN ({",".join("?" for _ in user_guilds)})", params=tuple([session_id] + [user_guild.id for user_guild in user_guilds]))
+                
+                # Update users, guilds, sessions
                 db.execute(query="UPDATE users SET username = ?, avatar = ? WHERE id = ?", params=(user.username, user.avatar, user.id))
                 for user_guild in user_guilds:
                     user_guild: Guild
-                    # Not updating bot_joined since value is just received from the db
-                    db.execute(query="UPDATE guilds SET name = ?, icon = ? WHERE id = ?", params=(user_guild.name, user_guild.icon, user_guild.id))
+                    db.execute(query="UPDATE guilds SET name = ?, icon = ? WHERE id = ?", params=(user_guild.name, user_guild.icon, user_guild.id)) # Not updating bot_joined since value is just received from the db
                 db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(minutes=10)), session_id))
 
                 logger.info("Old session has been refreshed.")
