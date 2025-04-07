@@ -6,6 +6,7 @@ class Guild(BaseModel):
     id: str
     name: str
     icon: str | None
+    bot_joined: bool
 
 
 class User(BaseModel):
@@ -19,11 +20,6 @@ class Session(BaseModel):
     user: User
     guilds: list[Guild]
     expire_timestamp: datetime
-
-
-class UserGuild(BaseModel):
-    bot_joined: bool
-    guild: Guild
 
 
 class EmojiRole(BaseModel):

@@ -83,7 +83,8 @@ if __name__ == "__main__":
             CREATE TABLE IF NOT EXISTS guilds (
                 id VARCHAR(255) NOT NULL UNIQUE,
                 name VARCHAR(255) NOT NULL,
-                icon VARCHAR(255)
+                icon VARCHAR(255),
+                bot_joined INTEGER NOT NULL CHECK (bot_joined IN (0, 1))
             )
             """
         )

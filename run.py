@@ -7,7 +7,7 @@ from src.internal_app import app as internal_app
 
 
 async def run_app(app: FastAPI, host: str, port: int):
-    config = uvicorn.Config(app, host=host, port=port, workers=4, log_level="info")
+    config = uvicorn.Config(app, host=host, port=port, workers=8, log_level="info")
     server = uvicorn.Server(config)
     await server.serve()
 

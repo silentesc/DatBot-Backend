@@ -31,14 +31,25 @@ def refresh_data(access_token: str) -> Session:
             avatar=user_data["avatar"],
         )
 
-        user_guilds = [
-            Guild(
-                id=guild["id"],
-                name=guild["name"],
-                icon=guild["icon"],
-            )
-            for guild in guilds_data if (int(guild["permissions"]) & 0x20) or (int(guild["permissions"]) & 0x8)
-        ]
+        # Get guilds from user data and combine with bot_joined from db to make Guild list
+        user_guilds = []
+        with DbManager() as db:
+            for guild in guilds_data:
+                if not ((int(guild["permissions"]) & 0x20) or (int(guild["permissions"]) & 0x8)):
+                    continue
+                guild_row: dict = db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild["id"],))
+                if not guild_row:
+                    bot_joined = False
+                else:
+                    bot_joined = True if guild_row["bot_joined"] else False
+                user_guilds.append(
+                    Guild(
+                        id=guild["id"],
+                        name=guild["name"],
+                        icon=guild["icon"],
+                        bot_joined=bot_joined,
+                    )
+                )
 
         # If a session already exists and is not expired, refresh session
         with DbManager() as db:
@@ -50,6 +61,8 @@ def refresh_data(access_token: str) -> Session:
                 # Update db
                 db.execute(query="UPDATE users SET username = ?, avatar = ? WHERE id = ?", params=(user.username, user.avatar, user.id))
                 for user_guild in user_guilds:
+                    user_guild: Guild
+                    # Not updating bot_joined since value is just received from the db
                     db.execute(query="UPDATE guilds SET name = ?, icon = ? WHERE id = ?", params=(user_guild.name, user_guild.icon, user_guild.id))
                 db.execute(query="UPDATE sessions SET access_token_expire_timestamp = ? WHERE id = ?", params=((datetime.now() + timedelta(minutes=10)), session_id))
 
@@ -70,7 +83,7 @@ def refresh_data(access_token: str) -> Session:
             db.execute(query="INSERT OR IGNORE INTO sessions (id, user_id, session_expire_timestamp, access_token, access_token_expire_timestamp) VALUES (?, ?, ?, ?, ?)", params=(session.session_id, user.id, (datetime.now() + timedelta(days=7)), access_token, (datetime.now() + timedelta(minutes=10))))
 
             for user_guild in user_guilds:
-                db.execute("INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", (user_guild.id, user_guild.name, user_guild.icon))
+                db.execute("INSERT OR IGNORE INTO guilds (id, name, icon, bot_joined) VALUES (?, ?, ?, ?)", (user_guild.id, user_guild.name, user_guild.icon, user_guild.bot_joined))
                 db.execute("INSERT INTO sessions_guilds_map (session_id, guild_id) VALUES (?, ?)", (session.session_id, user_guild.id))
 
         logger.info(f"New session has been created.")
@@ -132,6 +145,7 @@ def get_session(session_id: str) -> Session:
                     id=guild_row["id"],
                     name=guild_row["name"],
                     icon=guild_row["icon"],
+                    bot_joined=guild_row["bot_joined"],
                 )
             )
         
