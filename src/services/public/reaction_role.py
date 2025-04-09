@@ -44,6 +44,7 @@ class ReactionRoleService:
                         channel_name=channel.name,
                         channel_type=channel.type,
                         channel_parent_id=channel.parent_id,
+                        channel_position=channel.position,
                         type=reaction_role_messages_row["type"],
                         message=reaction_role_messages_row["message"],
                         emoji_roles=[]

@@ -20,7 +20,7 @@ class UserService:
         response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
         response_manager.check_for_error(response=response)
 
-        channels = [Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"]) for channel in response.json()]
+        channels = [Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"], position=channel["position"]) for channel in response.json()]
 
         return channels
 
