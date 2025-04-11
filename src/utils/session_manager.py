@@ -10,6 +10,8 @@ from src.data.models import Session, User, Guild
 from src.utils.db_manager import DbManager
 from src.utils import response_manager
 
+from src import env
+
 
 def get_refresh_lock(session_id: str):
     lock_path = os.path.join(tempfile.gettempdir(), f"session_lock_{session_id}.lock")
@@ -25,6 +27,12 @@ def refresh_data(access_token: str) -> Session:
         response_manager.check_for_error(response=guilds_response)
         guilds_data = guilds_response.json()
 
+        bot_guilds_response = requests.get(f"http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()})
+        response_manager.check_for_error(response=bot_guilds_response)
+        bot_joined_guild_ids: list[str] = [bot_guild["id"] for bot_guild in bot_guilds_response.json()]
+
+        print(bot_joined_guild_ids)
+
         user = User(
             id=user_data["id"],
             username=user_data["username"],
@@ -39,7 +47,12 @@ def refresh_data(access_token: str) -> Session:
                     continue
                 guild_row: dict = db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild["id"],))
                 if not guild_row:
-                    bot_joined = False
+                    if guild["id"] in bot_joined_guild_ids:
+                        print(f"Bot joined {guild["name"]}")
+                        bot_joined = True
+                    else:
+                        print(f"Bot didn't join {guild["name"]}")
+                        bot_joined = False
                 else:
                     bot_joined = True if guild_row["bot_joined"] else False
                 user_guilds.append(
