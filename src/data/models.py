@@ -69,3 +69,9 @@ class Log(BaseModel):
     user: User
     action: str
     timestamp: datetime
+
+
+class WelcomeMessage(BaseModel):
+    guild: Guild
+    channel: Channel
+    message: str
