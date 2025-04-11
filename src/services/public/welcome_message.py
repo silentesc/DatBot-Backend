@@ -68,6 +68,9 @@ class WelcomeMessageService:
 
         message = bleach.clean(message)
 
+        if len(message) <= 0 or len(message) > 2000:
+            raise HTTPException(status_code=400, detail="Message length must be between 0 and 2000")
+
         with DbManager() as db:
             welcome_message_row: dict = db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             if not welcome_message_row:
