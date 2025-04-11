@@ -26,8 +26,8 @@ class WelcomeMessageService:
         response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
         response_manager.check_for_error(response=response)
         
-        with DbManager() as db:
-            welcome_message_row: dict = db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
         
         if not welcome_message_row:
             return None
@@ -71,14 +71,14 @@ class WelcomeMessageService:
         if len(message) <= 0 or len(message) > 2000:
             raise HTTPException(status_code=400, detail="Message length must be between 0 and 2000")
 
-        with DbManager() as db:
-            welcome_message_row: dict = db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             if not welcome_message_row:
-                db.execute(query="INSERT INTO welcome_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?)", params=(guild_id, channel_id, message))
+                await db.execute(query="INSERT INTO welcome_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?)", params=(guild_id, channel_id, message))
             else:
-                db.execute(query="UPDATE welcome_messages SET dc_channel_id = ?, message = ? WHERE dc_guild_id = ?", params=(channel_id, message, guild_id))
+                await db.execute(query="UPDATE welcome_messages SET dc_channel_id = ?, message = ? WHERE dc_guild_id = ?", params=(channel_id, message, guild_id))
             
-            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Update welcome message"))
+            await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Update welcome message"))
 
 
     async def delete_welcome_message(self, session_id: str, guild_id: str) -> None:
@@ -87,11 +87,11 @@ class WelcomeMessageService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        with DbManager() as db:
-            welcome_message_row: dict = db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             if not welcome_message_row:
                 raise HTTPException(status_code=404, detail="This guild has no welcome message set")
             else:
-                db.execute(query="DELETE FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+                await db.execute(query="DELETE FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             
-            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Delete welcome message"))
+            await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Delete welcome message"))

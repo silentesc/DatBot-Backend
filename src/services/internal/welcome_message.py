@@ -22,8 +22,8 @@ class WelcomeMessageService:
         response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
         response_manager.check_for_error(response=response)
         
-        with DbManager() as db:
-            welcome_message_row: dict = db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
         
         if not welcome_message_row:
             return None
@@ -37,8 +37,8 @@ class WelcomeMessageService:
         if len(channels) != 1:
             raise HTTPException(status_code=400, detail="Channel is not found in guild")
         
-        with DbManager() as db:
-            guild_row: dict = db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            guild_row: dict = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild_id,))
         
         if not guild_row:
             raise HTTPException(status_code=400, detail="Guild not found in db")

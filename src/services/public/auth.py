@@ -44,19 +44,19 @@ class AuthService:
         token_data: dict = token_response.json()
         access_token = token_data["access_token"]
 
-        return session_manager.refresh_data(access_token=access_token)
+        return await session_manager.refresh_data(access_token=access_token)
 
 
     async def validate_session(self, session_id: str) -> Session:
-        session: Session = session_manager.get_session(session_id=session_id)
+        session: Session = await session_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
         return session
 
 
     async def logout(self, session_id: str) -> None:
-        session: Session = session_manager.get_session(session_id=session_id)
+        session: Session = await session_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is already expired.")
         
-        session_manager.delete_session(session_id=session_id)
+        await session_manager.delete_session(session_id=session_id)

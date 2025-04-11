@@ -6,3 +6,4 @@ loguru==0.7.3
 emoji==2.14.1
 bleach==6.2.0
 filelock==3.18.0
+aiosqlite==0.21.0

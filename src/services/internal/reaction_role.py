@@ -10,13 +10,13 @@ class ReactionRoleService:
         if api_key != env.get_api_key():
             raise HTTPException(status_code=403, detail="Forbidden")
 
-        with DbManager() as db:
-            reaction_role_messages_rows: list = db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
+        async with DbManager() as db:
+            reaction_role_messages_rows: list = await db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
             reaction_role_messages_ids: list = [reaction_role_message["id"] for reaction_role_message in reaction_role_messages_rows]
 
             placeholders = ','.join('?' for _ in reaction_role_messages_ids)
             query = f"SELECT * FROM reaction_roles WHERE reaction_role_messages_id IN ({placeholders})"
-            reaction_roles_rows: list = db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
+            reaction_roles_rows: list = await db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
 
         reaction_role_messages: dict[str, dict[str, str | EmojiRole]] = {}
 
