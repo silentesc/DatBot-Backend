@@ -1,9 +1,10 @@
-import requests
+from aiohttp import ClientResponse, ClientResponseError
 from fastapi import HTTPException
 
 
-def check_for_error(response: requests.Response):
+async def check_for_error(response: ClientResponse):
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+    except ClientResponseError:
+        detail = await response.text()
+        raise HTTPException(status_code=response.status, detail=detail)

@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-import requests
+from aiohttp import ClientSession
 
 from src.services.public.auth import AuthService
 from src.data.models import Session, Channel, Role
@@ -16,11 +16,13 @@ class UserService:
 
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
+        
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
 
-        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
-
-        channels = [Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"], position=channel["position"]) for channel in response.json()]
+        channels = [Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"], position=channel["position"]) for channel in response_data]
 
         return channels
 
@@ -31,9 +33,11 @@ class UserService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
 
-        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
 
-        roles = [Role(id=role["id"], name=role["name"], color=role["color"], position=role["position"], managed=role["managed"]) for role in response.json()]
+        roles = [Role(id=role["id"], name=role["name"], color=role["color"], position=role["position"], managed=role["managed"]) for role in response_data]
 
         return roles

@@ -1,4 +1,4 @@
-import requests
+from aiohttp import ClientSession
 from fastapi import HTTPException
 from loguru import logger
 
@@ -39,10 +39,11 @@ class AuthService:
             "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        token_response = requests.post("https://discord.com/api/oauth2/token", data=data, headers=headers)
-        response_manager.check_for_error(response=token_response)
-        token_data: dict = token_response.json()
-        access_token = token_data["access_token"]
+        async with ClientSession() as session:
+            async with session.post("https://discord.com/api/oauth2/token", data=data, headers=headers) as response:
+                await response_manager.check_for_error(response=response)
+                token_data: dict = await response.json()
+                access_token = token_data["access_token"]
 
         return await session_manager.refresh_data(access_token=access_token)
 

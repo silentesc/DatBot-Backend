@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-import requests
+from aiohttp import ClientSession
 
 from src.data.models import Channel, Guild, WelcomeMessage
 from src.services.public.auth import AuthService
@@ -19,8 +19,10 @@ class WelcomeMessageService:
         if api_key != env.get_api_key():
             raise HTTPException(status_code=403, detail="Forbidden")
         
-        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                channels_data = await response.json()
         
         async with DbManager() as db:
             welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
@@ -30,7 +32,7 @@ class WelcomeMessageService:
         
         channels: list[Channel] = [
             Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"], position=channel["position"])
-            for channel in response.json()
+            for channel in channels_data
             if channel["id"] == welcome_message_row["dc_channel_id"]
         ]
 

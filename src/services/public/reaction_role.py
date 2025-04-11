@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-import requests
+from aiohttp import ClientSession
 import emoji
 import bleach
 
@@ -81,10 +81,12 @@ class ReactionRoleService:
             if not emoji.is_emoji(emoji_role.emoji):
                 raise HTTPException(status_code=400, detail="An emoji is not a real emoji")
         
-        response = requests.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "type": reaction_role_type, "emoji_roles": emoji_roles})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "type": reaction_role_type, "emoji_roles": emoji_roles}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
 
-        dc_message_id = response.json()["message_id"]
+        dc_message_id = response_data["message_id"]
 
         async with db_manager.DbManager() as db:
             reaction_role_message_id = await db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, dc_message_id, type, message) VALUES (?, ?, ?, ?, ?) RETURNING id", params=(guild_id, channel_id, dc_message_id, reaction_role_type, message))["id"]
@@ -112,8 +114,9 @@ class ReactionRoleService:
         if not guild:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        response = requests.delete(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.delete(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
 
         async with db_manager.DbManager() as db:
             reaction_role_message_row = await db.execute_fetchone(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ? AND dc_channel_id = ? AND dc_message_id = ?", params=(guild_id, channel_id, message_id))

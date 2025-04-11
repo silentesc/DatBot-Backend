@@ -1,5 +1,5 @@
 import uuid
-import requests
+from aiohttp import ClientSession
 from datetime import datetime, timedelta
 from loguru import logger
 import os
@@ -19,17 +19,20 @@ def get_refresh_lock(session_id: str):
 
 
 async def refresh_data(access_token: str) -> Session:
-        user_response = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"})
-        response_manager.check_for_error(response=user_response)
-        user_data: dict = user_response.json()
-
-        guilds_response = requests.get("https://discord.com/api/users/@me/guilds", headers={"Authorization": f"Bearer {access_token}"})
-        response_manager.check_for_error(response=guilds_response)
-        guilds_data = guilds_response.json()
-
-        bot_guilds_response = requests.get(f"http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=bot_guilds_response)
-        bot_joined_guild_ids: list[str] = [bot_guild["id"] for bot_guild in bot_guilds_response.json()]
+        async with ClientSession() as session:
+            async with session.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"}) as response:
+                await response_manager.check_for_error(response=response)
+                user_data: dict = await response.json()
+        
+        async with ClientSession() as session:
+            async with session.get("https://discord.com/api/users/@me/guilds", headers={"Authorization": f"Bearer {access_token}"}) as response:
+                await response_manager.check_for_error(response=response)
+                guilds_data: dict = await response.json()
+        
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                bot_joined_guild_ids: list[str] = [bot_guild["id"] for bot_guild in await response.json()]
 
         user = User(
             id=user_data["id"],

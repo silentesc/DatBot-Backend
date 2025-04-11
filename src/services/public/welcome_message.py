@@ -1,6 +1,6 @@
 from fastapi import HTTPException
+from aiohttp import ClientSession
 import bleach
-import requests
 
 from src.data.models import Channel, Session, WelcomeMessage
 from src.services.public.auth import AuthService
@@ -23,8 +23,10 @@ class WelcomeMessageService:
         if not guild:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
         
         async with DbManager() as db:
             welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
@@ -34,7 +36,7 @@ class WelcomeMessageService:
         
         channels: list[Channel] = [
             Channel(id=channel["id"], name=channel["name"], type=channel["type"], parent_id=channel["parentId"], position=channel["position"])
-            for channel in response.json()
+            for channel in response_data
             if channel["id"] == welcome_message_row["dc_channel_id"]
         ]
 
@@ -54,11 +56,13 @@ class WelcomeMessageService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        response = requests.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()})
-        response_manager.check_for_error(response=response)
+        async with ClientSession() as session:
+            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
 
         channel_found = False
-        for channel in response.json():
+        for channel in response_data:
             if channel["id"] == channel_id:
                 channel_found = True
                 break
