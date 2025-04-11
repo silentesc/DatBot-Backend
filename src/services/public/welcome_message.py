@@ -77,6 +77,8 @@ class WelcomeMessageService:
                 db.execute(query="INSERT INTO welcome_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?)", params=(guild_id, channel_id, message))
             else:
                 db.execute(query="UPDATE welcome_messages SET dc_channel_id = ?, message = ? WHERE dc_guild_id = ?", params=(channel_id, message, guild_id))
+            
+            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Update welcome message"))
 
 
     async def delete_welcome_message(self, session_id: str, guild_id: str) -> None:
@@ -91,3 +93,5 @@ class WelcomeMessageService:
                 raise HTTPException(status_code=404, detail="This guild has no welcome message set")
             else:
                 db.execute(query="DELETE FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            
+            db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Delete welcome message"))
