@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from loguru import logger
 import os
 import tempfile
-from filelock import FileLock, Timeout
+from filelock import AsyncFileLock, Timeout
 
 from src.data.models import Session, User, Guild
 from src.utils.db_manager import DbManager
@@ -15,7 +15,7 @@ from src import env
 
 def get_refresh_lock(session_id: str):
     lock_path = os.path.join(tempfile.gettempdir(), f"session_lock_{session_id}.lock")
-    return FileLock(lock_path, timeout=60)
+    return AsyncFileLock(lock_path, timeout=60)
 
 
 async def refresh_data(access_token: str) -> Session:
@@ -133,47 +133,46 @@ async def get_session(session_id: str) -> Session:
         access_token = sessions_row["access_token"]
         access_token_expire_timestamp = str2datetime(sessions_row["access_token_expire_timestamp"])
 
-        # Return None if session expired
-        if datetime.now() > session_expire_timestamp:
-            logger.info("Session expired")
-            delete_session(session_id=session_id)
-            return None
-        
-        # Try to refresh data if access token expired, using a lock to wait if another process is refreshing
-        if datetime.now() > access_token_expire_timestamp:
-            refresh_lock = get_refresh_lock(session_id)
-            
+    if datetime.now() > session_expire_timestamp:
+        logger.info("Session expired")
+        await delete_session(session_id=session_id)
+        return None
+
+    # Use AsyncFileLock to ensure only one refresh occurs
+    if datetime.now() > access_token_expire_timestamp:
+        refresh_lock = get_refresh_lock(session_id)
+        try:
+            # Try to acquire lock in non-blocking mode
+            await refresh_lock.acquire(blocking=False)
+        except Timeout:
+            logger.info("Refresh in progress, waiting for refreshed session")
+            async with get_refresh_lock(session_id):
+                return await get_session(session_id)
+        else:
             try:
-                refresh_lock.acquire(timeout=0)
-            except Timeout:
-                logger.info("Refresh in progress, waiting for refreshed session")
-                try:
-                    # block until lock is available
-                    refresh_lock.acquire(blocking=True, timeout=60)
-                except Timeout:
-                    logger.error(f"Timeout acquiring refresh lock for session {session_id}")
-                    return None
-                else:
-                    refresh_lock.release()
-                    return get_session(session_id)
-            else:
                 logger.info("Access token expired, refreshing session")
                 return await refresh_data(access_token=access_token)
+            finally:
+                await refresh_lock.release()
 
-        guild_rows: list[dict] = await db.execute_fetchall(query="SELECT * FROM guilds WHERE id IN (SELECT guild_id FROM sessions_guilds_map WHERE session_id = ?)", params=(session_id,))
+    async with DbManager() as db:
+        guild_rows: list[dict] = await db.execute_fetchall(
+            query="SELECT * FROM guilds WHERE id IN (SELECT guild_id FROM sessions_guilds_map WHERE session_id = ?)",
+            params=(session_id,)
+        )
 
-        guilds: list[Guild] = []
-        for guild_row in guild_rows:
-            guilds.append(
-                Guild(
-                    id=guild_row["id"],
-                    name=guild_row["name"],
-                    icon=guild_row["icon"],
-                    bot_joined=guild_row["bot_joined"],
-                )
+    guilds: list[Guild] = []
+    for guild_row in guild_rows:
+        guilds.append(
+            Guild(
+                id=guild_row["id"],
+                name=guild_row["name"],
+                icon=guild_row["icon"],
+                bot_joined=guild_row["bot_joined"],
             )
-        
-        return Session(session_id=session_id, user=user, guilds=guilds, expire_timestamp=session_expire_timestamp)
+        )
+    
+    return Session(session_id=session_id, user=user, guilds=guilds, expire_timestamp=session_expire_timestamp)
 
 
 async def delete_session(session_id: str) -> None:
@@ -189,7 +188,7 @@ async def clean_expired_sessions():
         expired_session_ids: list[str] = [expired_session_row["id"] for expired_session_row in expired_session_rows]
 
     for expired_session_id in expired_session_ids:
-        delete_session(expired_session_id)
+        await delete_session(expired_session_id)
 
     logger.info(f"{len(expired_session_ids)} sessions have been removed due to expiration.")
 
