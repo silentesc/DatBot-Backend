@@ -41,7 +41,7 @@ class ReactionRole(BaseModel):
     channel_id: str
     channel_name: str
     channel_type: int
-    channel_parent_id: str
+    channel_parent_id: str | None
     channel_position: int
     type: str
     message: str

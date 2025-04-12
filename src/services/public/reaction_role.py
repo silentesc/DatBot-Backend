@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from aiohttp import ClientSession
 import emoji
 import bleach
+import json
 
 from src.data.models import Session, EmojiRole, ReactionRole, EmojiRoleExtended, Channel, Role
 from src.services.public.auth import AuthService
@@ -81,15 +82,16 @@ class ReactionRoleService:
             if not emoji.is_emoji(emoji_role.emoji):
                 raise HTTPException(status_code=400, detail="An emoji is not a real emoji")
         
-        async with ClientSession() as session:
-            async with session.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "type": reaction_role_type, "emoji_roles": emoji_roles}) as response:
+        async with ClientSession() as client_session:
+            async with client_session.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "type": reaction_role_type, "emoji_roles": json.dumps([obj.dict() for obj in emoji_roles])}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
 
         dc_message_id = response_data["message_id"]
 
         async with db_manager.DbManager() as db:
-            reaction_role_message_id = await db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, dc_message_id, type, message) VALUES (?, ?, ?, ?, ?) RETURNING id", params=(guild_id, channel_id, dc_message_id, reaction_role_type, message))["id"]
+            reaction_role_message_row = await db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, dc_message_id, type, message) VALUES (?, ?, ?, ?, ?) RETURNING id", params=(guild_id, channel_id, dc_message_id, reaction_role_type, message))
+            reaction_role_message_id = reaction_role_message_row["id"]
 
             reaction_role_emoji_roles_values = []
             for emoji_role in emoji_roles:
@@ -114,8 +116,8 @@ class ReactionRoleService:
         if not guild:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        async with ClientSession() as session:
-            async with session.delete(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()}) as response:
+        async with ClientSession() as client_session:
+            async with client_session.delete(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}/{message_id}", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
 
         async with db_manager.DbManager() as db:

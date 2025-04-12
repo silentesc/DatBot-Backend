@@ -49,10 +49,8 @@ async def refresh_data(access_token: str) -> Session:
                 guild_row: dict = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild["id"],))
                 if not guild_row:
                     if guild["id"] in bot_joined_guild_ids:
-                        print(f"Bot joined {guild["name"]}")
                         bot_joined = True
                     else:
-                        print(f"Bot didn't join {guild["name"]}")
                         bot_joined = False
                 else:
                     bot_joined = True if guild_row["bot_joined"] else False
