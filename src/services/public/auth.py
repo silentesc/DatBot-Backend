@@ -39,8 +39,8 @@ class AuthService:
             "Content-Type": "application/x-www-form-urlencoded"
         }
 
-        async with ClientSession() as session:
-            async with session.post("https://discord.com/api/oauth2/token", data=data, headers=headers) as response:
+        async with ClientSession() as client_session:
+            async with client_session.post("https://discord.com/api/oauth2/token", data=data, headers=headers) as response:
                 await response_manager.check_for_error(response=response)
                 token_data: dict = await response.json()
                 access_token = token_data["access_token"]

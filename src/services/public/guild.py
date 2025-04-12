@@ -17,8 +17,8 @@ class UserService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        async with ClientSession() as session:
-            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+        async with ClientSession() as client_session:
+            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
 
@@ -33,8 +33,8 @@ class UserService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
 
-        async with ClientSession() as session:
-            async with session.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()}) as response:
+        async with ClientSession() as client_session:
+            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
 

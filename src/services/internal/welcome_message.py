@@ -19,8 +19,8 @@ class WelcomeMessageService:
         if api_key != env.get_api_key():
             raise HTTPException(status_code=403, detail="Forbidden")
         
-        async with ClientSession() as session:
-            async with session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+        async with ClientSession() as client_session:
+            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 channels_data = await response.json()
         
