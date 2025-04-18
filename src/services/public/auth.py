@@ -18,7 +18,7 @@ class AuthService:
 
     async def get_invite_url(self) -> str:
         invite_url = (
-            f"https://discord.com/oauth2/authorize?client_id={env.get_client_id()}&permissions=8&integration_type=0&scope=bot"
+            f"https://discord.com/oauth2/authorize?client_id={env.get_client_id()}&permissions=268520512&integration_type=0&scope=bot"
         )
         return invite_url
 
