@@ -67,15 +67,7 @@ if __name__ == "__main__":
             await db.execute(query="""
                 CREATE TABLE IF NOT EXISTS auto_roles (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    dc_guild_id VARCHAR(255) NOT NULL
-                )
-                """
-            )
-
-            await db.execute(query="""
-                CREATE TABLE IF NOT EXISTS auto_roles_roles (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    reaction_role_messages_id INTEGER NOT NULL,
+                    dc_guild_id VARCHAR(255) NOT NULL,
                     dc_role_id VARCHAR(255) NOT NULL
                 )
                 """
