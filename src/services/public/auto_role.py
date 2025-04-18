@@ -40,17 +40,24 @@ class AutoRoleService:
         return auto_roles
 
 
-    async def add_auto_role(self, session_id: str, guild_id: str, role_id: str) -> None:
+    async def add_auto_role(self, session_id: str, guild_id: str, role_id: str) -> Role | None:
         session: Session = await auth_service.validate_session(session_id=session_id)
 
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
+        
+        roles: list[Role] = await guild_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
+
+        if not (role_id in [role.id for role in roles]):
+            raise HTTPException(status_code=404, detail="Role does not exist on guild");
         
         async with DbManager() as db:
             auto_roles_row: dict = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
             if auto_roles_row:
                 raise HTTPException(status_code=400, detail="This role for this guild is already a auto role")
             await db.execute(query="INSERT INTO auto_roles (dc_guild_id, dc_role_id) VALUES (?, ?)", params=(guild_id, role_id))
+        
+        return next((role for role in roles if role.id == role_id), None)
 
 
     async def remove_auto_role(self, session_id: str, guild_id: str, role_id: str) -> None:

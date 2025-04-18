@@ -14,7 +14,7 @@ async def get_reaction_roles(session_id: str, guild_id: str) -> list[Role]:
 
 
 @router.post("/auto_role")
-async def add_auto_role(session_id: str, guild_id: str, role_id: str) -> None:
+async def add_auto_role(session_id: str, guild_id: str, role_id: str) -> Role | None:
     return await auto_role_service.add_auto_role(session_id=session_id, guild_id=guild_id, role_id=role_id)
 
 
