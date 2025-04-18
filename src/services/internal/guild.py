@@ -1,7 +1,9 @@
+from aiohttp import ClientSession
 from fastapi import HTTPException
 
 from src import env
-from src.data.models import Guild
+from src.data.models import Guild, Role
+from src.utils import response_manager
 from src.utils.db_manager import DbManager
 
 
@@ -27,3 +29,14 @@ class GuildService:
                 await db.execute(query="INSERT INTO guilds (id, name, icon, bot_joined) VALUES (?, ?, ?, ?)", params=(guild.id, guild.name, guild.icon, guild.bot_joined))
             else:
                 await db.execute(query="UPDATE guilds SET name = ?, icon = ?, bot_joined = ? WHERE id = ?", params=(guild.name, guild.icon, guild.bot_joined, guild.id))
+
+
+    async def get_guild_roles(self, guild_id: str) -> list[Role]:
+        async with ClientSession() as client_session:
+            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/roles", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
+
+        roles = [Role(id=role["id"], name=role["name"], color=role["color"], position=role["position"], managed=role["managed"]) for role in response_data]
+
+        return roles
