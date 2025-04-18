@@ -3,12 +3,12 @@ from loguru import logger
 
 from src.data.models import Session, Role
 from src.services.public.auth import AuthService
-from src.services.public.guild import UserService
+from src.services.public.guild import GuildService
 from src.utils.db_manager import DbManager
 
 
 auth_service = AuthService()
-user_service = UserService()
+guild_service = GuildService()
 
 
 class AutoRoleService:
@@ -21,7 +21,7 @@ class AutoRoleService:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         # Get roles from bot
-        roles = await user_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
+        roles = await guild_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
 
         # Get auto roles from db
         async with DbManager() as db:

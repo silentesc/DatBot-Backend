@@ -10,7 +10,7 @@ from src import env
 auth_service = AuthService()
 
 
-class UserService:
+class GuildService:
     async def get_guild_channels(self, session_id: str, guild_id: str) -> list[Channel]:
         session: Session = await auth_service.validate_session(session_id=session_id)
 

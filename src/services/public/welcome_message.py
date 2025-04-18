@@ -4,7 +4,6 @@ import bleach
 
 from src.data.models import Channel, Session, WelcomeMessage
 from src.services.public.auth import AuthService
-from src.services.public.guild import UserService
 from src.utils import response_manager
 from src.utils.db_manager import DbManager
 
@@ -12,7 +11,6 @@ from src import env
 
 
 auth_service = AuthService()
-user_service = UserService()
 
 
 class WelcomeMessageService:

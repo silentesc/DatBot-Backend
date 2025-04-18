@@ -6,13 +6,13 @@ import json
 
 from src.data.models import Session, EmojiRole, ReactionRole, EmojiRoleExtended, Channel, Role
 from src.services.public.auth import AuthService
-from src.services.public.guild import UserService
+from src.services.public.guild import GuildService
 from src.utils import response_manager, db_manager
 from src import env
 
 
 auth_service = AuthService()
-user_service = UserService()
+guild_service = GuildService()
 
 
 class ReactionRoleService:
@@ -22,8 +22,8 @@ class ReactionRoleService:
         if not guild_id in [guild.id for guild in session.guilds]:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
-        guild_channels: list[Channel] = await user_service.get_guild_channels(session_id=session_id, guild_id=guild_id)
-        guild_roles: list[Role] = await user_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
+        guild_channels: list[Channel] = await guild_service.get_guild_channels(session_id=session_id, guild_id=guild_id)
+        guild_roles: list[Role] = await guild_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
 
         async with db_manager.DbManager() as db:
             reaction_role_messages_rows: list = await db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
