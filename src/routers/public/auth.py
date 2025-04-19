@@ -10,8 +10,8 @@ auth_service = AuthService()
 
 
 @router.get("/invite")
-async def get_invite_url() -> str:
-    return await auth_service.get_invite_url()
+async def get_invite_url(guild_id: str) -> str:
+    return await auth_service.get_invite_url(guild_id=guild_id)
 
 
 @router.get("/login")
