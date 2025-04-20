@@ -56,6 +56,8 @@ class AutoRoleService:
             if auto_roles_row:
                 raise HTTPException(status_code=400, detail="This role for this guild is already a auto role")
             await db.execute(query="INSERT INTO auto_roles (dc_guild_id, dc_role_id) VALUES (?, ?)", params=(guild_id, role_id))
+
+            await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Add a role to auto roles"))
         
         return next((role for role in roles if role.id == role_id), None)
 
@@ -71,3 +73,5 @@ class AutoRoleService:
             if not auto_roles_row:
                 raise HTTPException(status_code=404, detail="This role for this guild does not exist")
             await db.execute(query="DELETE FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
+
+            await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Remove a role from auto roles"))
