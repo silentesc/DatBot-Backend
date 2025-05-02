@@ -75,3 +75,9 @@ class WelcomeMessage(BaseModel):
     guild: Guild
     channel: Channel
     message: str
+
+
+class LeaveMessage(BaseModel):
+    guild: Guild
+    channel: Channel
+    message: str

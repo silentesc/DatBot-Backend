@@ -9,5 +9,5 @@ welcome_message_service = WelcomeMessageService()
 
 
 @router.get("/welcome_message")
-async def get_reaction_roles(api_key: str, guild_id: str) -> WelcomeMessage | None:
+async def get_welcome_message(api_key: str, guild_id: str) -> WelcomeMessage | None:
     return await welcome_message_service.get_welcome_message(api_key=api_key, guild_id=guild_id)

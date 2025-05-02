@@ -65,6 +65,16 @@ if __name__ == "__main__":
             )
 
             await db.execute(query="""
+                CREATE TABLE IF NOT EXISTS leave_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    dc_guild_id VARCHAR(255) NOT NULL UNIQUE,
+                    dc_channel_id VARCHAR(255) NOT NULL UNIQUE,
+                    message TEXT NOT NULL
+                )
+                """
+            )
+
+            await db.execute(query="""
                 CREATE TABLE IF NOT EXISTS auto_roles (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     dc_guild_id VARCHAR(255) NOT NULL,
