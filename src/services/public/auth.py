@@ -16,8 +16,9 @@ class AuthService:
 
 
     async def get_invite_url(self, guild_id: str) -> str:
+        permissions = 268528704 # Manage Roles, View Channels, Send Messages, Manage Messages, Embed Links, Read Message History, Add Reactions
         invite_url = (
-            f"https://discord.com/oauth2/authorize?client_id={env.get_client_id()}&guild_id={guild_id}&permissions=268520512&integration_type=0&scope=bot"
+            f"https://discord.com/oauth2/authorize?client_id={env.get_client_id()}&guild_id={guild_id}&permissions={permissions}&integration_type=0&scope=bot"
         )
         return invite_url
 
