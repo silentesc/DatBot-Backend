@@ -48,14 +48,14 @@ class AuthService:
 
 
     async def validate_session(self, session_id: str) -> Session:
-        session: Session = await session_manager.get_session(session_id=session_id)
+        session: Session | None = await session_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is expired.")
         return session
 
 
     async def logout(self, session_id: str) -> None:
-        session: Session = await session_manager.get_session(session_id=session_id)
+        session: Session | None = await session_manager.get_session(session_id=session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session does not exist or is already expired.")
         

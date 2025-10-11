@@ -26,12 +26,12 @@ class ReactionRoleService:
         guild_roles: list[Role] = await guild_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
 
         async with db_manager.DbManager() as db:
-            reaction_role_messages_rows: list = await db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            reaction_role_messages_rows = await db.execute_fetchall(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ?", params=(guild_id,))
             reaction_role_messages_ids: list = [reaction_role_message["id"] for reaction_role_message in reaction_role_messages_rows]
 
             placeholders = ','.join('?' for _ in reaction_role_messages_ids)
             query = f"SELECT * FROM reaction_roles WHERE reaction_role_messages_id IN ({placeholders})"
-            reaction_roles_rows: list = await db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
+            reaction_roles_rows = await db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
 
         reaction_role_messages: dict[str, ReactionRole] = {}
 
@@ -91,6 +91,8 @@ class ReactionRoleService:
 
         async with db_manager.DbManager() as db:
             reaction_role_message_row = await db.execute_fetchone("INSERT INTO reaction_role_messages (dc_guild_id, dc_channel_id, dc_message_id, type, message) VALUES (?, ?, ?, ?, ?) RETURNING id", params=(guild_id, channel_id, dc_message_id, reaction_role_type, message))
+            if not reaction_role_message_row:
+                raise HTTPException(status_code=500, detail="Failed to insert reaction role message (this should never happen)")
             reaction_role_message_id = reaction_role_message_row["id"]
 
             reaction_role_emoji_roles_values = []

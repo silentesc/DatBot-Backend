@@ -21,7 +21,7 @@ class AutoRoleService:
 
         # Get auto roles from db
         async with DbManager() as db:
-            auto_roles_rows: list[dict] = await db.execute_fetchall(query="SELECT * FROM auto_roles WHERE dc_guild_id = ?", params=(guild_id,))
+            auto_roles_rows = await db.execute_fetchall(query="SELECT * FROM auto_roles WHERE dc_guild_id = ?", params=(guild_id,))
         
         # Map list to only contain the auto roles
         auto_roles: list[Role] = []

@@ -19,7 +19,7 @@ class LeaveMessageService:
                 channels_data = await response.json()
         
         async with DbManager() as db:
-            leave_message_row: dict = await db.execute_fetchone(query="SELECT * FROM leave_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            leave_message_row = await db.execute_fetchone(query="SELECT * FROM leave_messages WHERE dc_guild_id = ?", params=(guild_id,))
         
         if not leave_message_row:
             return None
@@ -34,7 +34,7 @@ class LeaveMessageService:
             raise HTTPException(status_code=400, detail="Channel is not found in guild")
         
         async with DbManager() as db:
-            guild_row: dict = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild_id,))
+            guild_row = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild_id,))
         
         if not guild_row:
             raise HTTPException(status_code=400, detail="Guild not found in db")

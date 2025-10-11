@@ -27,7 +27,7 @@ class WelcomeMessageService:
                 response_data = await response.json()
         
         async with DbManager() as db:
-            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            welcome_message_row = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
         
         if not welcome_message_row:
             return None
@@ -74,7 +74,7 @@ class WelcomeMessageService:
             raise HTTPException(status_code=400, detail="Message length must be between 0 and 2000")
 
         async with DbManager() as db:
-            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            welcome_message_row = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             if not welcome_message_row:
                 await db.execute(query="INSERT INTO welcome_messages (dc_guild_id, dc_channel_id, message) VALUES (?, ?, ?)", params=(guild_id, channel_id, message))
             else:
@@ -90,7 +90,7 @@ class WelcomeMessageService:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         async with DbManager() as db:
-            welcome_message_row: dict = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
+            welcome_message_row = await db.execute_fetchone(query="SELECT * FROM welcome_messages WHERE dc_guild_id = ?", params=(guild_id,))
             if not welcome_message_row:
                 raise HTTPException(status_code=404, detail="This guild has no welcome message set")
             else:

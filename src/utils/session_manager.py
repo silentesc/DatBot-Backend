@@ -46,7 +46,7 @@ async def refresh_data(access_token: str) -> Session:
             for guild in guilds_data:
                 if not ((int(guild["permissions"]) & 0x20) or (int(guild["permissions"]) & 0x8)):
                     continue
-                guild_row: dict = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild["id"],))
+                guild_row = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild["id"],))
                 if not guild_row:
                     if guild["id"] in bot_joined_guild_ids:
                         bot_joined = True
@@ -65,13 +65,13 @@ async def refresh_data(access_token: str) -> Session:
 
         # If a session already exists and is not expired, refresh session
         async with DbManager() as db:
-            session_row: dict = await db.execute_fetchone(query="SELECT * FROM sessions WHERE access_token = ?", params=(access_token,))
+            session_row = await db.execute_fetchone(query="SELECT * FROM sessions WHERE access_token = ?", params=(access_token,))
             if session_row and datetime.now() < str2datetime(session_row["session_expire_timestamp"]):
                 session_id = session_row["id"]
                 session_expire_timestamp = str2datetime(session_row["session_expire_timestamp"])
 
                 # Add new guilds to guilds and sessions_guilds_map
-                sessions_guilds_map_rows: list[dict] = await db.execute_fetchall(query=f"SELECT * FROM sessions_guilds_map WHERE session_id = ?", params=(session_id,))
+                sessions_guilds_map_rows = await db.execute_fetchall(query=f"SELECT * FROM sessions_guilds_map WHERE session_id = ?", params=(session_id,))
                 sessions_guilds_map_guild_ids: list[str] = [sessions_guilds_map_row["guild_id"] for sessions_guilds_map_row in sessions_guilds_map_rows]
                 for user_guild in user_guilds:
                     if user_guild.id not in sessions_guilds_map_guild_ids:
@@ -113,14 +113,18 @@ async def refresh_data(access_token: str) -> Session:
         return session
 
 
-async def get_session(session_id: str) -> Session:
+async def get_session(session_id: str) -> Session | None:
     async with DbManager() as db:
-        sessions_row: dict = await db.execute_fetchone(query="SELECT * FROM sessions WHERE id = ?", params=(session_id,))
+        sessions_row = await db.execute_fetchone(query="SELECT * FROM sessions WHERE id = ?", params=(session_id,))
         if not sessions_row:
             logger.info("Session not found")
             return None
         
-        users_row: dict = await db.execute_fetchone(query="SELECT * FROM users WHERE id = ?", params=(sessions_row["user_id"],))
+        users_row = await db.execute_fetchone(query="SELECT * FROM users WHERE id = ?", params=(sessions_row["user_id"],))
+        if not users_row:
+            logger.info("User not found")
+            return None
+
         user = User(
             id=users_row["id"],
             username=users_row["username"],
@@ -154,7 +158,7 @@ async def get_session(session_id: str) -> Session:
                 await refresh_lock.release()
 
     async with DbManager() as db:
-        guild_rows: list[dict] = await db.execute_fetchall(
+        guild_rows = await db.execute_fetchall(
             query="SELECT * FROM guilds WHERE id IN (SELECT guild_id FROM sessions_guilds_map WHERE session_id = ?)",
             params=(session_id,)
         )
@@ -182,7 +186,7 @@ async def delete_session(session_id: str) -> None:
 
 async def clean_expired_sessions():
     async with DbManager() as db:
-        expired_session_rows: list[dict] = await db.execute_fetchall(query="SELECT id FROM sessions WHERE session_expire_timestamp < ?", params=(datetime.now(),))
+        expired_session_rows = await db.execute_fetchall(query="SELECT id FROM sessions WHERE session_expire_timestamp < ?", params=(datetime.now(),))
         expired_session_ids: list[str] = [expired_session_row["id"] for expired_session_row in expired_session_rows]
 
     for expired_session_id in expired_session_ids:

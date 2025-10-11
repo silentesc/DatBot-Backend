@@ -13,7 +13,7 @@ class GuildService:
             raise HTTPException(status_code=403, detail="Forbidden")
         
         async with DbManager() as db:
-            guild_rows: list[dict] = await db.execute_fetchall(query="SELECT * FROM guilds")
+            guild_rows = await db.execute_fetchall(query="SELECT * FROM guilds")
         
         guilds: list[Guild] = [Guild(id=guild_row["id"], name=guild_row["name"], icon=guild_row["icon"], bot_joined=guild_row["bot_joined"]) for guild_row in guild_rows]
         return guilds
@@ -24,7 +24,7 @@ class GuildService:
             raise HTTPException(status_code=403, detail="Forbidden")
 
         async with DbManager() as db:
-            guild_row: dict = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild.id,))
+            guild_row = await db.execute_fetchone(query="SELECT * FROM guilds WHERE id = ?", params=(guild.id,))
             if not guild_row:
                 await db.execute(query="INSERT INTO guilds (id, name, icon, bot_joined) VALUES (?, ?, ?, ?)", params=(guild.id, guild.name, guild.icon, guild.bot_joined))
             else:

@@ -1,28 +1,29 @@
+from typing import Iterable
 import aiosqlite
 import asyncio
 
 
 class DbManager:
-    async def __aenter__(self):
+    async def __aenter__(self) -> "DbManager":
         self.conn = await aiosqlite.connect("database.db")
         self.conn.row_factory = aiosqlite.Row
         return self
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, traceback) -> None:
         await self.conn.commit()
         await self.conn.close()
 
-    async def execute(self, query: str, params: tuple = ()):
+    async def execute(self, query: str, params: tuple = ()) -> None:
         cursor = await self.conn.execute(query, params)
         await cursor.close()
 
-    async def execute_fetchall(self, query: str, params: tuple = ()):
+    async def execute_fetchall(self, query: str, params: tuple = ()) -> Iterable[aiosqlite.Row]:
         cursor = await self.conn.execute(query, params)
         result = await cursor.fetchall()
         await cursor.close()
         return result
 
-    async def execute_fetchone(self, query: str, params: tuple = ()):
+    async def execute_fetchone(self, query: str, params: tuple = ()) -> aiosqlite.Row | None:
         cursor = await self.conn.execute(query, params)
         result = await cursor.fetchone()
         await cursor.close()

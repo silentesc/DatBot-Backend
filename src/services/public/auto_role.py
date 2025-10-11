@@ -25,7 +25,7 @@ class AutoRoleService:
 
         # Get auto roles from db
         async with DbManager() as db:
-            auto_roles_rows: list[dict] = await db.execute_fetchall(query="SELECT * FROM auto_roles WHERE dc_guild_id = ?", params=(guild_id,))
+            auto_roles_rows = await db.execute_fetchall(query="SELECT * FROM auto_roles WHERE dc_guild_id = ?", params=(guild_id,))
         
         # Map list to only contain the auto roles
         auto_roles: list[Role] = []
@@ -52,7 +52,7 @@ class AutoRoleService:
             raise HTTPException(status_code=404, detail="Role does not exist on guild");
         
         async with DbManager() as db:
-            auto_roles_row: dict = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
+            auto_roles_row = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
             if auto_roles_row:
                 raise HTTPException(status_code=400, detail="This role for this guild is already a auto role")
             await db.execute(query="INSERT INTO auto_roles (dc_guild_id, dc_role_id) VALUES (?, ?)", params=(guild_id, role_id))
@@ -69,7 +69,7 @@ class AutoRoleService:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         async with DbManager() as db:
-            auto_roles_row: dict = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
+            auto_roles_row = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
             if not auto_roles_row:
                 raise HTTPException(status_code=404, detail="This role for this guild does not exist")
             await db.execute(query="DELETE FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))
