@@ -125,12 +125,8 @@ class ReactionRoleService:
                 reaction_role_emoji_roles_values.append(emoji_role.emoji)
                 reaction_role_emoji_roles_values.append(emoji_role.role_id)
             await db.execute(query=f"INSERT INTO reaction_roles (reaction_role_messages_id, emoji, dc_role_id) VALUES {",".join(["(?,?,?)" for _ in emoji_roles])}", params=tuple(reaction_role_emoji_roles_values))
-        
-        async with db_manager.DbManager() as db:
-            await db.execute(query="INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", params=(guild_id, guild.name, guild.icon))
-            await db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?)", params=(session.user.id, session.user.username, session.user.avatar))
             await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Added reaction role"))
-        
+
         return dc_message_id
 
 
@@ -154,8 +150,4 @@ class ReactionRoleService:
 
             await db.execute("DELETE FROM reaction_roles WHERE reaction_role_messages_id = ?", params=(reaction_role_message_id,))
             await db.execute("DELETE FROM reaction_role_messages WHERE id = ?", params=(reaction_role_message_id,))
-        
-        async with db_manager.DbManager() as db:
-            await db.execute(query="INSERT OR IGNORE INTO guilds (id, name, icon) VALUES (?, ?, ?)", params=(guild_id, guild.name, guild.icon))
-            await db.execute(query="INSERT OR IGNORE INTO users (id, username, avatar) VALUES (?, ?, ?)", params=(session.user.id, session.user.username, session.user.avatar))
             await db.execute(query="INSERT INTO logs (guild_id, user_id, action) VALUES (?, ?, ?)", params=(guild_id, session.user.id, "Deleted reaction role"))
