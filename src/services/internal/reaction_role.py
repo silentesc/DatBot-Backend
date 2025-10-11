@@ -38,3 +38,17 @@ class ReactionRoleService:
             )
         
         return [v for _, v in reaction_role_messages.items()]
+
+
+    async def delete_reaction_role(self, api_key: str, guild_id: str, channel_id: str, message_id: str):
+        if api_key != env.get_api_key():
+            raise HTTPException(status_code=403, detail="Forbidden")
+
+        async with DbManager() as db:
+            reaction_role_message_row = await db.execute_fetchone(query="SELECT * FROM reaction_role_messages WHERE dc_guild_id = ? AND dc_channel_id = ? AND dc_message_id = ?", params=(guild_id, channel_id, message_id))
+            if not reaction_role_message_row:
+                raise HTTPException(status_code=404, detail="Couldn't find reaction role")
+            reaction_role_message_id = reaction_role_message_row["id"]
+
+            await db.execute("DELETE FROM reaction_roles WHERE reaction_role_messages_id = ?", params=(reaction_role_message_id,))
+            await db.execute("DELETE FROM reaction_role_messages WHERE id = ?", params=(reaction_role_message_id,))
