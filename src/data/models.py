@@ -12,7 +12,7 @@ class Guild(BaseModel):
 class User(BaseModel):
     id: str
     username: str
-    avatar: str
+    avatar: str | None
 
 
 class Session(BaseModel):

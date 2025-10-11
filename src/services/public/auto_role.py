@@ -1,10 +1,13 @@
+from aiohttp import ClientSession
 from fastapi import HTTPException
 from loguru import logger
 
 from src.data.models import Session, Role
 from src.services.public.auth import AuthService
 from src.services.public.guild import GuildService
+from src.utils import response_manager
 from src.utils.db_manager import DbManager
+from src import env
 
 
 auth_service = AuthService()
@@ -49,7 +52,14 @@ class AutoRoleService:
         roles: list[Role] = await guild_service.get_guild_roles(session_id=session_id, guild_id=guild_id)
 
         if not (role_id in [role.id for role in roles]):
-            raise HTTPException(status_code=404, detail="Role does not exist on guild");
+            raise HTTPException(status_code=404, detail="Role does not exist on guild")
+        
+        async with ClientSession() as client_session:
+            async with client_session.get(f"http://localhost:3001/permissions/give_role/{guild_id}/{role_id}", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                response_data = await response.json()
+        if not response_data["has_permission"]:
+            raise HTTPException(status_code=403, detail="Bot does not have permission to add this role to members")
         
         async with DbManager() as db:
             auto_roles_row = await db.execute_fetchone(query="SELECT * FROM auto_roles WHERE dc_guild_id = ? AND dc_role_id = ?", params=(guild_id, role_id))

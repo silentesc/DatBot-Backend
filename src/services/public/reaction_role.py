@@ -82,6 +82,30 @@ class ReactionRoleService:
             if not emoji.is_emoji(emoji_role.emoji):
                 raise HTTPException(status_code=400, detail="An emoji is not a real emoji")
         
+        # Check bot permissions
+        async with ClientSession() as client_session:
+            # Send messages
+            async with client_session.get(f"http://localhost:3001/permissions/send_messages/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                if not (await response.json())["has_permission"]:
+                    raise HTTPException(status_code=403, detail=f"Bot does not have permission to send messages in specified channel")
+            # React
+            async with client_session.get(f"http://localhost:3001/permissions/react/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                if not (await response.json())["has_permission"]:
+                    raise HTTPException(status_code=403, detail=f"Bot does not have permission to react to messages in specified channel")
+            # Remove others reactions
+            async with client_session.get(f"http://localhost:3001/permissions/remove_others_reactions/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}) as response:
+                await response_manager.check_for_error(response=response)
+                if not (await response.json())["has_permission"]:
+                    raise HTTPException(status_code=403, detail=f"Bot does not have permission to remove reactions from specified channel")
+            # Give roles
+            for emoji_role in emoji_roles:
+                async with client_session.get(f"http://localhost:3001/permissions/give_role/{guild_id}/{emoji_role.role_id}", headers={"Authorization": env.get_api_key()}) as response:
+                    await response_manager.check_for_error(response=response)
+                    if not (await response.json())["has_permission"]:
+                        raise HTTPException(status_code=403, detail=f"Bot does not have permission to give role with id {emoji_role.role_id!r}")
+        
         async with ClientSession() as client_session:
             async with client_session.post(f"http://localhost:3001/reaction_roles/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}, params={"message": message, "type": reaction_role_type, "emoji_roles": json.dumps([obj.dict() for obj in emoji_roles])}) as response:
                 await response_manager.check_for_error(response=response)

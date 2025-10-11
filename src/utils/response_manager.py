@@ -6,5 +6,8 @@ async def check_for_error(response: ClientResponse):
     try:
         response.raise_for_status()
     except ClientResponseError:
-        detail = await response.text()
+        try:
+            detail = await response.json()
+        except Exception:
+            detail = await response.text()
         raise HTTPException(status_code=response.status, detail=detail)
