@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import HTTPException
 
 from src import env
@@ -18,7 +19,7 @@ class ReactionRoleService:
             query = f"SELECT * FROM reaction_roles WHERE reaction_role_messages_id IN ({placeholders})"
             reaction_roles_rows = await db.execute_fetchall(query=query, params=tuple(reaction_role_messages_ids))
 
-        reaction_role_messages: dict[str, dict[str, str | EmojiRole | list[EmojiRole]]] = {}
+        reaction_role_messages: dict[str, dict[str, Any]] = {}
 
         for reaction_role_messages_row in reaction_role_messages_rows:
             reaction_role_messages[reaction_role_messages_row["id"]] = {
@@ -30,10 +31,10 @@ class ReactionRoleService:
             }
         
         for reaction_roles_row in reaction_roles_rows:
-            list(reaction_role_messages[reaction_roles_row["reaction_role_messages_id"]]["emoji_roles"]).append(
+            reaction_role_messages[reaction_roles_row["reaction_role_messages_id"]]["emoji_roles"].append(
                 EmojiRole(
                     emoji=reaction_roles_row["emoji"],
-                    role_id=reaction_roles_row["dc_role_id"]
+                    role_id=reaction_roles_row["dc_role_id"],
                 )
             )
         
