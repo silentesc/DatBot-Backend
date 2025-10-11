@@ -1,6 +1,5 @@
 from aiohttp import ClientSession
 from fastapi import HTTPException
-from loguru import logger
 
 from src.utils import session_manager, response_manager
 from src import env

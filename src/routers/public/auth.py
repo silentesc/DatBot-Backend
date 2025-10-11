@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from loguru import logger
 
 from src.services.public.auth import AuthService
 from src.data.models import Session

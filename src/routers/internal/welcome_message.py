@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from src.services.internal.welcome_message import WelcomeMessageService
-from src.data.models import Guild, WelcomeMessage, Channel
+from src.data.models import WelcomeMessage
 
 
 router = APIRouter()
