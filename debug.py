@@ -15,7 +15,7 @@ async def run_app(app: FastAPI, host: str, port: int):
 async def run_apps():
     try:
         await asyncio.gather(
-            run_app(public_app, "127.0.0.1", 8000),
+            run_app(public_app, "127.0.0.1", 8001),
             run_app(internal_app, "127.0.0.1", 9000),
         )
     except asyncio.exceptions.CancelledError:

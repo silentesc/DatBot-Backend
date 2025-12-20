@@ -17,6 +17,9 @@ services:
   datbot-backend:
     image: datbot-backend
     container_name: datbot-backend
+    ports:
+      - "8001:8001"
+      - "9000:9000"
     environment:
       - PUID=1000
       - PGID=1000
