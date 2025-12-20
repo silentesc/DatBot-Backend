@@ -25,6 +25,6 @@ services:
       - PGID=1000
       - TZ=Etc/UTC
     volumes:
-      - ./data/database.db:database.db
+      - ./data/database.db:/database.db
     restart: unless-stopped
 ```
