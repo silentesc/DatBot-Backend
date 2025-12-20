@@ -24,6 +24,10 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
+      - CLIENT_ID=""
+      - CLIENT_SECRET=""
+      - REDIRECT_URI=""
+      - API_KEY=""
     volumes:
       - ./data/database.db:/database.db
     restart: unless-stopped
