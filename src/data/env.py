@@ -28,3 +28,7 @@ class Env:
 
     def get_api_key(self) -> str:
         return self.__get_var("API_KEY")
+
+
+    def get_bot_backend_url(self) -> str:
+        return self.__get_var("BOT_BACKEND_URL")

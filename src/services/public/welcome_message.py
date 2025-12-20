@@ -22,7 +22,7 @@ class WelcomeMessageService:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         async with ClientSession() as client_session:
-            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+            async with client_session.get(f"{env.get_bot_backend_url()}/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
         
@@ -55,7 +55,7 @@ class WelcomeMessageService:
             raise HTTPException(status_code=404, detail="Guild not found in user session")
         
         async with ClientSession() as client_session:
-            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+            async with client_session.get(f"{env.get_bot_backend_url()}/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
 
@@ -74,7 +74,7 @@ class WelcomeMessageService:
             raise HTTPException(status_code=400, detail="Message length must be between 0 and 2000")
         
         async with ClientSession() as client_session:
-            async with client_session.get(f"http://localhost:3001/permissions/send_messages/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}) as response:
+            async with client_session.get(f"{env.get_bot_backend_url()}/permissions/send_messages/{guild_id}/{channel_id}", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
         if not response_data["has_permission"]:

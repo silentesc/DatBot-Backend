@@ -14,7 +14,7 @@ class LeaveMessageService:
             raise HTTPException(status_code=403, detail="Forbidden")
         
         async with ClientSession() as client_session:
-            async with client_session.get(f"http://localhost:3001/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
+            async with client_session.get(f"{env.get_bot_backend_url()}/guilds/{guild_id}/channels", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 channels_data = await response.json()
         

@@ -30,7 +30,7 @@ async def refresh_data(access_token: str) -> Session:
             guilds_data: dict = await response.json()
     
     async with ClientSession() as client_session:
-        async with client_session.get(f"http://localhost:3001/guilds", headers={"Authorization": env.get_api_key()}) as response:
+        async with client_session.get(f"{env.get_bot_backend_url()}/guilds", headers={"Authorization": env.get_api_key()}) as response:
             await response_manager.check_for_error(response=response)
             bot_joined_guild_ids: list[str] = [bot_guild["id"] for bot_guild in await response.json()]
 

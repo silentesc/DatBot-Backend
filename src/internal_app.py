@@ -3,12 +3,14 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.routers.internal import reaction_role, guild, welcome_message, auto_role, leave_message
 
+from src import env
+
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://127.0.0.1:3001"],
+    allow_origins=[env.get_bot_backend_url()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

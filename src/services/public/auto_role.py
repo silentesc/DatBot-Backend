@@ -55,7 +55,7 @@ class AutoRoleService:
             raise HTTPException(status_code=404, detail="Role does not exist on guild")
         
         async with ClientSession() as client_session:
-            async with client_session.get(f"http://localhost:3001/permissions/give_role/{guild_id}/{role_id}", headers={"Authorization": env.get_api_key()}) as response:
+            async with client_session.get(f"{env.get_bot_backend_url()}/permissions/give_role/{guild_id}/{role_id}", headers={"Authorization": env.get_api_key()}) as response:
                 await response_manager.check_for_error(response=response)
                 response_data = await response.json()
         if not response_data["has_permission"]:

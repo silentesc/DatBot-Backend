@@ -28,6 +28,7 @@ services:
       - CLIENT_SECRET=""
       - REDIRECT_URI=""
       - API_KEY=""
+      - BOT_BACKEND_URL=""
     volumes:
       - ./data/:/data/
     restart: unless-stopped
