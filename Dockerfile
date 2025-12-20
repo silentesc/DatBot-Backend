@@ -23,4 +23,6 @@ RUN mkdir -p /data \
 # Switch to non-root user
 USER appuser
 
+EXPOSE 8001 9000
+
 CMD [ "python", "run.py" ]
