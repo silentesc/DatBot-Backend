@@ -9,7 +9,7 @@ from src import env
 
 
 async def run_app(app: FastAPI, host: str, port: int):
-    config = uvicorn.Config(app, host=host, port=port, workers=8, log_level="info", proxy_headers=True)
+    config = uvicorn.Config(app, host=host, port=port, workers=8, log_level="info", proxy_headers=True, forwarded_allow_ips="*")
     server = uvicorn.Server(config)
     await server.serve()
 
