@@ -13,6 +13,8 @@ async def run_app(app: FastAPI, host: str, port: int):
 
 
 async def run_apps():
+    from src.utils.db_manager import check_create_tables
+    await check_create_tables()
     try:
         await asyncio.gather(
             run_app(public_app, "127.0.0.1", 8001),

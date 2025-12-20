@@ -29,6 +29,6 @@ services:
       - REDIRECT_URI=""
       - API_KEY=""
     volumes:
-      - ./data/database.db:/database.db
+      - ./data/:/data/
     restart: unless-stopped
 ```
