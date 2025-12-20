@@ -24,6 +24,8 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
+      - PUBLIC_API_PORT=8001
+      - INTERNAL_API_PORT=9000
       - CLIENT_ID=""
       - CLIENT_SECRET=""
       - REDIRECT_URI=""

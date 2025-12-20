@@ -32,3 +32,11 @@ class Env:
 
     def get_bot_backend_url(self) -> str:
         return self.__get_var("BOT_BACKEND_URL")
+
+
+    def get_public_api_port(self) -> str:
+        return self.__get_var("PUBLIC_API_PORT")
+
+
+    def get_internal_api_port(self) -> str:
+        return self.__get_var("INTERNAL_API_PORT")

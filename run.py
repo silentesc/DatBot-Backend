@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from src.public_app import app as public_app
 from src.internal_app import app as internal_app
 
+from src import env
+
 
 async def run_app(app: FastAPI, host: str, port: int):
     config = uvicorn.Config(app, host=host, port=port, workers=8, log_level="info", proxy_headers=True)
@@ -17,8 +19,8 @@ async def run_apps():
     await check_create_tables()
     try:
         await asyncio.gather(
-            run_app(public_app, "0.0.0.0", 8001),
-            run_app(internal_app, "0.0.0.0", 9000),
+            run_app(public_app, "0.0.0.0", int(env.get_public_api_port())),
+            run_app(internal_app, "0.0.0.0", int(env.get_internal_api_port())),
         )
     except asyncio.exceptions.CancelledError:
         pass
