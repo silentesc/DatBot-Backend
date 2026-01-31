@@ -20,7 +20,7 @@ async def run_apps():
     try:
         await asyncio.gather(
             run_app(public_app, "0.0.0.0", int(env.get_public_api_port())),
-            run_app(internal_app, "127.0.0.1", int(env.get_internal_api_port())),
+            run_app(internal_app, "0.0.0.0", int(env.get_internal_api_port())),
         )
     except asyncio.exceptions.CancelledError:
         pass
